@@ -106,9 +106,14 @@ if (contents is error) {
 ```
 
 ### 3. Tell the Error Object What to do
-Custom Panic Message (this will panic in place)
+Force a panic in place
 ```
-let contents: string = vm.read_file("/does/not/exist"){panic: "That's not the right file"};
+let contents: string = vm.read_file("/does/not/exist"){panic};
+```
+
+Custom Panic Message (will panic when used)
+```
+let contents: string = vm.read_file("/does/not/exist"){message: "That's not the right file"};
 ```
 
 Default Value (must be of correct type or will panic in place). Variables or functions allowed.
@@ -120,8 +125,10 @@ let contents: string = vm.read_file("/does/not/exist"){default: some_function()}
 
 You can continue to chain the values methods
 ```
-let contents: string = vm.read_file("/does/not/exist"){panic: "That's not the right file"}.trim();
-                                                                                          ^ Will panic here if error, otherwise just works
+let contents: string = vm.read_file("/does/not/exist") {
+    message: "That's not the right file"
+}.trim();
+  ^ Will panic here if error, otherwise just works
 ```
 
 ## Examples
