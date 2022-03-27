@@ -83,6 +83,21 @@ impl VM {
                 self.remainder = (left % right) as u32;
                 false
             }
+            Opcode::JUMP => {
+                let target = self.registers[self.next_8_bits() as usize];
+                self.counter = target as usize;
+                false
+            }
+            Opcode::JUMP_FORWARD => {
+                let value = self.registers[self.next_8_bits() as usize] as usize;
+                self.counter += value;
+                false
+            }
+            Opcode::JUMP_BACKWARD => {
+                let value = self.registers[self.next_8_bits() as usize] as usize;
+                self.counter -= value;
+                false
+            }
         }
     }
 
@@ -221,6 +236,32 @@ mod tests {
         assert_eq!(test_vm.registers[3], 6);
         assert_eq!(test_vm.registers[4], 24);
         assert_eq!(test_vm.registers[5], 1);
-        assert_eq!(test_vm.remainder, 4);
+    }
+
+    #[test]
+    fn test_jmp_opcode() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 1;
+        test_vm.instructions = vec![6, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.counter, 1);
+    }
+
+    #[test]
+    fn test_jmpf_opcode() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 2;
+        test_vm.instructions = vec![7, 0, 0, 0, 6, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.counter, 4);
+    }
+
+    #[test]
+    fn test_jmpb_opcode() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 2;
+        test_vm.instructions = vec![8, 0, 0, 0, 6, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.counter, 0);
     }
 }

@@ -10,6 +10,10 @@ pub enum Opcode {
     SUBTRACT,
     MULTIPLY,
     DIVIDE,
+    JUMP,
+    JUMP_FORWARD,
+    JUMP_BACKWARD,
+    // @todo: these should all be CamelCase
 }
 
 // @todo: encode the long, short, code, and hex into the actual variant in one place
@@ -25,6 +29,9 @@ impl fmt::Display for Opcode {
             Opcode::SUBTRACT => writeln!(f, "SUBRACT [SUB][0x05]"),
             Opcode::MULTIPLY => writeln!(f, "MULTIPLY [MUL][0x06]"),
             Opcode::DIVIDE => writeln!(f, "DIVIDE [DIV][0x07]"),
+            Opcode::JUMP => writeln!(f, "JUMP [JMP][0x07]"),
+            Opcode::JUMP_FORWARD => writeln!(f, "JUMP_FORWARD [JMPF][0x07]"), // @todo: these should be instruction sizes
+            Opcode::JUMP_BACKWARD => writeln!(f, "JUMP_BACKWARD [JMPB][0x07]"),
         }
     }
 }
@@ -38,6 +45,9 @@ impl From<u8> for Opcode {
             3 => Opcode::SUBTRACT,
             4 => Opcode::MULTIPLY,
             5 => Opcode::DIVIDE,
+            6 => Opcode::JUMP,
+            7 => Opcode::JUMP_FORWARD,
+            8 => Opcode::JUMP_BACKWARD,
             _ => Opcode::ILLEGAL,
         }
     }
