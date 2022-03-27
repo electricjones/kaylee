@@ -1,5 +1,6 @@
-pub mod vm;
+use kaylee::repl::Repl;
 
 fn main() {
-    println!("Hello, world!");
+    let mut repl = Repl::new();
+    repl.run();
 }

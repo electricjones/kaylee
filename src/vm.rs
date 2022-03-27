@@ -3,9 +3,9 @@ use crate::vm::instructions::Opcode;
 mod instructions;
 
 pub struct VM {
-    registers: [i32; 32],
+    pub(crate) registers: [i32; 32],
     counter: usize,
-    instructions: Vec<u8>,
+    pub instructions: Vec<u8>,
     remainder: u32,
 }
 
