@@ -31,20 +31,21 @@ However, there are a few types that act as primitive, but are built on more prim
 
 The only standard library are functions attached to each type. Users cannot make types.
 
-| Category | Type          | Keyword               | Notes                                                          |
-|----------|---------------|-----------------------|----------------------------------------------------------------|
-| Memory   | None          | `null`                | uninitialized, but allocated memory                            |
-| Memory   | Pointer       | `pointer`             | memory space address                                           |
-| Memory   | Slice         | `slice[type; length]` | A slice of memory for a certain length                         |
-| Scalar   | Byte          | `byte`                | Single byte (really just a boolean)                            |
-| Scalar   | Integer       | `integer`             | always an i32 integer                                          |
-| Scalar   | Float         | `float`               | always a f32 float                                             |
-| Scalar   | Character     | `char`                | Single unicode character                                       |
-| Scalar   | Boolean       | `bool`                | True or false                                                  |
-| Complex  | Fixed Array   | `array[type; length]` | Single type and fixed length. Stack Allocated                  |
-| Complex  | Static Vector | `vector[type]`        | Grow and shrink an array like structure                        |
-| Complex  | String        | `string`              | A Character Vector with some utils                             |
-| Error    | error         | `error`               | Any type can be an `error` which will panic if used as a value |
+| Category   | Type            | Keyword                 | Notes                                                            |
+|------------|-----------------|-------------------------|------------------------------------------------------------------|
+| Memory     | None            | `null`                  | uninitialized, but allocated memory                              |
+| Memory     | Pointer         | `pointer`               | memory space address                                             |
+| Memory     | Slice           | `slice[type; length]`   | A slice of memory for a certain length                           |
+| Scalar     | Byte            | `byte`                  | Single byte (really just a boolean)                              |
+| Scalar     | Integer         | `integer`               | always an i32 integer                                            |
+| Scalar     | Float           | `float`                 | always a f32 float                                               |
+| Scalar     | Character       | `char`                  | Single unicode character                                         |
+| Scalar     | Boolean         | `bool`                  | True or false                                                    |
+| Complex    | Fixed Array     | `array[type; length]`   | Single type and fixed length. Stack Allocated                    |
+| Complex    | Static Vector   | `vector[type]`          | Grow and shrink an array like structure                          |
+| Complex    | String          | `string`                | A Character Vector with some utils                               |
+| Error      | error           | `error`                 | Any type can be an `error` which will panic if used as a value   |
+| ---------- | --------------- | ----------------------- | ---------------------------------------------------------------- |
 
 All types are Rust Structs that implement a `DataValue` trait.
 This trait handles the data types. It can:
