@@ -98,6 +98,65 @@ impl VM {
                 self.counter -= value;
                 false
             }
+            Opcode::EQ => {
+                let destination = self.next_8_bits() as usize;
+                let left = self.registers[self.next_8_bits() as usize];
+                let right = self.registers[self.next_8_bits() as usize];
+
+                self.registers[destination] = (left == right) as i32;
+                false
+            }
+            Opcode::NEQ => {
+                let destination = self.next_8_bits() as usize;
+                let left = self.registers[self.next_8_bits() as usize];
+                let right = self.registers[self.next_8_bits() as usize];
+
+                self.registers[destination] = (left != right) as i32;
+                false
+            }
+            Opcode::GT => {
+                let destination = self.next_8_bits() as usize;
+                let left = self.registers[self.next_8_bits() as usize];
+                let right = self.registers[self.next_8_bits() as usize];
+
+                self.registers[destination] = (left > right) as i32;
+                false
+            }
+            Opcode::LT => {
+                let destination = self.next_8_bits() as usize;
+                let left = self.registers[self.next_8_bits() as usize];
+                let right = self.registers[self.next_8_bits() as usize];
+
+                self.registers[destination] = (left < right) as i32;
+                false
+            }
+            Opcode::GTE => {
+                let destination = self.next_8_bits() as usize;
+                let left = self.registers[self.next_8_bits() as usize];
+                let right = self.registers[self.next_8_bits() as usize];
+
+                self.registers[destination] = (left >= right) as i32;
+                false
+            }
+            Opcode::LTE => {
+                let destination = self.next_8_bits() as usize;
+                let left = self.registers[self.next_8_bits() as usize];
+                let right = self.registers[self.next_8_bits() as usize];
+
+                self.registers[destination] = (left <= right) as i32;
+                false
+            }
+            Opcode::JEQ => {
+                let target = self.registers[self.next_8_bits() as usize];
+                let left = self.registers[self.next_8_bits() as usize];
+                let right = self.registers[self.next_8_bits() as usize];
+
+                if left == right {
+                    self.counter = target as usize;
+                }
+
+                false
+            }
         }
     }
 
@@ -263,5 +322,41 @@ mod tests {
         test_vm.instructions = vec![8, 0, 0, 0, 6, 0, 0, 0];
         test_vm.run_once();
         assert_eq!(test_vm.counter, 0);
+    }
+
+    #[test]
+    fn test_eq_opcode() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 2;
+        test_vm.registers[1] = 2;
+        test_vm.instructions = vec![9, 2, 0, 1];
+        test_vm.run();
+        assert_eq!(test_vm.registers[2], 1);
+
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 2;
+        test_vm.registers[1] = 3;
+        test_vm.instructions = vec![9, 2, 0, 1];
+        test_vm.run();
+        assert_eq!(test_vm.registers[2], 0);
+    }
+
+    #[test]
+    fn test_jeq_opcode() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 2;
+        test_vm.registers[1] = 2;
+        test_vm.registers[2] = 10;
+        test_vm.instructions = vec![15, 2, 0, 1];
+        test_vm.run();
+        assert_eq!(test_vm.counter, 10);
+
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 2;
+        test_vm.registers[1] = 3;
+        test_vm.registers[2] = 10;
+        test_vm.instructions = vec![9, 2, 0, 1];
+        test_vm.run();
+        assert_eq!(test_vm.counter, 4);
     }
 }

@@ -13,6 +13,13 @@ pub enum Opcode {
     JUMP,
     JUMP_FORWARD,
     JUMP_BACKWARD,
+    EQ,
+    NEQ,
+    GT,
+    LT,
+    GTE,
+    LTE,
+    JEQ,
     // @todo: these should all be CamelCase
 }
 
@@ -32,6 +39,7 @@ impl fmt::Display for Opcode {
             Opcode::JUMP => writeln!(f, "JUMP [JMP][0x07]"),
             Opcode::JUMP_FORWARD => writeln!(f, "JUMP_FORWARD [JMPF][0x07]"), // @todo: these should be instruction sizes
             Opcode::JUMP_BACKWARD => writeln!(f, "JUMP_BACKWARD [JMPB][0x07]"),
+            _ => { writeln!(f, "equality") }
         }
     }
 }
@@ -48,6 +56,13 @@ impl From<u8> for Opcode {
             6 => Opcode::JUMP,
             7 => Opcode::JUMP_FORWARD,
             8 => Opcode::JUMP_BACKWARD,
+            9 => Opcode::EQ,
+            10 => Opcode::NEQ,
+            11 => Opcode::GT,
+            12 => Opcode::LT,
+            13 => Opcode::GTE,
+            14 => Opcode::LTE,
+            15 => Opcode::JEQ,
             _ => Opcode::ILLEGAL,
         }
     }
