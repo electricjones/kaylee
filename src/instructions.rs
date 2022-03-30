@@ -27,24 +27,29 @@ pub fn decode_next_instruction(instructions: &mut Vec<u8>, program_counter: &mut
     let opcode: u8 = instructions[*program_counter];
     *program_counter += 1;
 
-    let instruction = match opcode {
-        Halt::OPCODE => {
-            Halt::new(
+    match opcode {
+        Halt::OPCODE => build::<Halt>(instructions, program_counter),
+        // Load::OPCODE => build::<Load>(instructions, program_counter),
+        _ => {
+            return Err(InstructionDecodeError::IllegalOpcode);
+        }
+    }
+}
+
+
+pub fn build<T: 'static + Instruction>(instructions: &mut Vec<u8>, program_counter: &mut usize) -> Result<Box<dyn Instruction>, InstructionDecodeError> {
+    Ok(
+        Box::new(
+            T::new(
                 consume_and_parse_values(
-                    Halt::operand_map(),
+                    T::operand_map(),
                     instructions,
                     program_counter,
                 )?
             )
-        }
-        _ => {
-            return Err(InstructionDecodeError::IllegalOpcode);
-        }
-    };
-
-    Ok(Box::new(instruction))
+        )
+    )
 }
-
 
 pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &mut Vec<u8>, program_counter: &mut usize) -> Result<OperandValues, InstructionDecodeError> {
     let mut operand_values: OperandValues = [OperandValue::None, OperandValue::None, OperandValue::None];
@@ -73,6 +78,7 @@ pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &mut Vec<
 
 pub trait Instruction {
     // Also requires a `pub const OPCODE: u8`
+    fn new(operand_values: OperandValues) -> Self where Self: Sized;
     fn name(&self) -> String;
     fn description(&self) -> String;
     fn identifier(&self) -> String;
@@ -94,12 +100,13 @@ pub struct Halt {
 
 impl Halt {
     pub const OPCODE: u8 = 0;
-    pub fn new(operand_values: OperandValues) -> Self {
-        Halt { operand_values }
-    }
 }
 
 impl Instruction for Halt {
+    fn new(operand_values: OperandValues) -> Self {
+        Halt { operand_values }
+    }
+
     fn name(&self) -> String {
         "Halt".to_string()
     }
