@@ -1,11 +1,21 @@
+# Notes
+
+- Instructions are 1-4 `u8` words
+- Register Identifiers are `usize`
+- Register Values are `i32`
+
 ## Virtual Machine
+
 TODO: Memory Allocation
 
 ## Byte Code and Assembly
+
 TODO: Opcode table
 
 ## High Level Language
+
 Goals and Features:
+
 - Memory types (pointer, slice, byte)
 - Primitive types (bool, int, char, etc.)
 - Complex types (arrays, string, vectors)

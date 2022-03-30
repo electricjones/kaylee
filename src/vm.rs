@@ -76,6 +76,10 @@ impl VM {
         true
     }
 
+    pub(crate) fn set_register(&mut self, register: usize, value: i32) {
+        self.registers[register] = value;
+    }
+
     // @todo: this shouldn't be mutable
     // @todo: next_instruction() should be mutable
     fn decode_next_opcode(&mut self) -> Opcode {
@@ -107,27 +111,15 @@ mod tests {
     #[test]
     fn program() {
         let program = Program::new(vec![
-            0, // A Single Halt
+            // 0,           // HALT
+            1, 4, 1, 244, // LOAD $4 #500
         ]);
 
         for instruction in program {
-            assert_eq!(instruction.name(), "Halt".to_string());
+            assert_eq!(instruction.name(), "Load".to_string());
         }
     }
 
-    // #[test]
-    // fn load() {
-    //     let program = Program::new(vec![
-    //         1,
-    //         2, // Destination
-    //         9, // Value
-    //     ]);
-    //
-    //     for instruction in program {
-    //         assert_eq!(instruction.me(), "Me".to_string());
-    //     }
-    // }
-//
 //     #[test]
 //     fn test_create_vm() {
 //         let test_vm = VM::new();
