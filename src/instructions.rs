@@ -23,11 +23,6 @@ pub enum InstructionDecodeError {
     IllegalOpcode,
 }
 
-// @todo: Note that I went with the unconventional idea of variable instruction length
-// @todo: Turn all the statics to methods
-// @todo: Test the LOAD instruction
-// @todo: Refactor the rest to use new instructions
-// @todo: cache decoded instructions to save on performance when jumping
 pub fn decode_next_instruction(instructions: &mut Vec<u8>, program_counter: &mut usize) -> Result<Box<dyn Instruction>, InstructionDecodeError> {
     let opcode: u8 = instructions[*program_counter];
     *program_counter += 1;

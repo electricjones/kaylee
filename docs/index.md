@@ -1,5 +1,5 @@
 # Notes
-
+- I went with the unconventional idea of variable instruction length
 - Instructions are 1-4 `u8` words
 - Register Identifiers are `usize`
 - Register Values are `i32`
