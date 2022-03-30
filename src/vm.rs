@@ -1,60 +1,20 @@
-use std::fmt::Error;
-
-use crate::instructions::Instruction;
-use crate::vm::instructions::Opcode;
-
-mod instructions;
+use crate::program::Program;
 
 pub enum ExecutionResult {
+    // @todo: Decide on SUCCESSFUL Execution Results (and make an Execution Failure)
     Halted,
     Value(i32),
-    // @todo: Do I need this?
-}
-
-pub struct Program {
-    counter: usize,
-    instructions: Vec<u8>,
-}
-
-
-impl Program {
-    pub fn new(instructions: Vec<u8>) -> Self {
-        Program {
-            counter: 0,
-            instructions,
-        }
-    }
-}
-
-impl Iterator for Program {
-    type Item = Box<dyn Instruction>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if &self.counter >= &self.instructions.len() {
-            return None;
-        }
-
-        Some(crate::instructions::decode_next_instruction(&mut self.instructions, &mut self.counter).unwrap())
-        // *&mut self.counter += 1;
-        // Some(instruction)
-    }
 }
 
 pub struct VM {
-    program: Program,
     pub(crate) registers: [i32; 32],
-    counter: usize,
-    pub instructions: Vec<u8>,
     remainder: u32,
 }
 
 impl VM {
     pub fn new() -> Self {
         VM {
-            program: Program::new(vec![]),
             registers: [0; 32],
-            counter: 0,
-            instructions: vec![],
             remainder: 0,
         }
     }
@@ -64,7 +24,7 @@ impl VM {
             match instruction.execute(self) {
                 Ok(ExecutionResult::Value(value)) => println!("{value}"),
                 Ok(ExecutionResult::Halted) => println!("Halting"),
-                Err(error) => panic!("Error")
+                Err(_) => panic!("Error")
             }
         }
 
@@ -74,40 +34,13 @@ impl VM {
         // }
     }
 
-    pub fn run_once(&mut self) {
-        self.execute_instruction();
-    }
-
-    pub fn execute_instruction(&mut self) -> bool {
-        if self.counter >= self.instructions.len() {
-            return true;
-        }
-
-        true
-    }
+    // pub fn run_once(&mut self) {
+    //     self.execute_instruction();
+    // }
 
     pub(crate) fn set_register(&mut self, register: usize, value: i32) {
         self.registers[register] = value;
     }
-
-    // @todo: this shouldn't be mutable
-    // @todo: next_instruction() should be mutable
-    fn decode_next_opcode(&mut self) -> Opcode {
-        let opcode = Opcode::from(self.instructions[self.counter]);
-        self.counter += 1;
-        opcode
-    }
-    pub fn next_8_bits(&mut self) -> u8 {
-        let result = self.instructions[self.counter];
-        self.counter += 1;
-        result
-    }
-    pub fn next_16_bits(&mut self) -> u16 {
-        let result = ((self.instructions[self.counter] as u16) << 8) | self.instructions[self.counter + 1] as u16;
-        self.counter += 2;
-        result
-    }
-
 
     pub fn halt(&mut self) {
         std::process::exit(0);

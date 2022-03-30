@@ -1,8 +1,9 @@
 use std;
 use std::io;
 use std::io::Write;
-use std::num::ParseIntError;
 
+// use std::num::ParseIntError;
+use crate::program::Program;
 use crate::shared::parse_hex;
 use crate::vm::VM;
 
@@ -35,6 +36,8 @@ impl Repl {
 
             self.command_buffer.push(buffer.to_string());
 
+            let mut program = Program::new(vec![]);
+
             match buffer {
                 ".quit" => {
                     println!("Have a great day!");
@@ -47,8 +50,8 @@ impl Repl {
                 }
                 ".program" => {
                     println!("Listing entire program instructions");
-                    for instruction in &self.vm.instructions {
-                        println!("{instruction}");
+                    for instruction in program {
+                        println!("{}", instruction.signature()); // @todo: print actual instruction with values
                     }
                     println!("End of instructions");
                 }
@@ -61,14 +64,15 @@ impl Repl {
                     let results = parse_hex(buffer);
                     match results {
                         Ok(bytes) => {
-                            self.vm.instructions.extend(bytes);
+                            program.extend(bytes);
                         }
                         Err(_e) => {
                             println!("Invalid HEX string");
                         }
                     }
 
-                    self.vm.run_once();
+                    // @todo: run_once
+                    // self.vm.run_once();
                 }
             }
         }
