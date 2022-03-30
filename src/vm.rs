@@ -1,3 +1,5 @@
+use std::fmt::Error;
+
 use crate::instructions::Instruction;
 use crate::vm::instructions::Opcode;
 
@@ -57,11 +59,19 @@ impl VM {
         }
     }
 
-    pub fn run(&mut self) {
-        let mut is_done = false;
-        while !is_done {
-            is_done = self.execute_instruction();
+    pub fn run(&mut self, program: &mut Program) {
+        for instruction in program {
+            match instruction.execute(self) {
+                Ok(ExecutionResult::Value(value)) => println!("{value}"),
+                Ok(ExecutionResult::Halted) => println!("Halting"),
+                Err(error) => panic!("Error")
+            }
         }
+
+        // let mut is_done = false;
+        // while !is_done {
+        //     is_done = self.execute_instruction();
+        // }
     }
 
     pub fn run_once(&mut self) {
@@ -110,14 +120,19 @@ mod tests {
 
     #[test]
     fn program() {
-        let program = Program::new(vec![
+        let mut program = Program::new(vec![
             // 0,           // HALT
             1, 4, 1, 244, // LOAD $4 #500
+            1, 6, 0, 12,  // LOAD $6 #12
         ]);
 
-        for instruction in program {
-            assert_eq!(instruction.name(), "Load".to_string());
-        }
+        // for instruction in program {
+        //     assert_eq!(instruction.name(), "Load".to_string());
+        // }
+
+        let mut vm = VM::new();
+        vm.run(&mut program);
+        assert_eq!(true, true);
     }
 
 //     #[test]
