@@ -68,13 +68,13 @@ impl From<u8> for Opcode {
     }
 }
 
-pub struct Instruction {
+pub struct Instruction2 {
     opcode: Opcode,
 }
 
-impl Instruction {
-    pub fn new(opcode: Opcode) -> Instruction {
-        Instruction {
+impl Instruction2 {
+    pub fn new(opcode: Opcode) -> Instruction2 {
+        Instruction2 {
             opcode
         }
     }
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_create_instruction() {
-        let instruction = Instruction::new(Opcode::HALT);
+        let instruction = Instruction2::new(Opcode::HALT);
         assert_eq!(instruction.opcode, Opcode::HALT)
     }
 }
