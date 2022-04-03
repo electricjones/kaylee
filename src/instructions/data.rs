@@ -1,7 +1,7 @@
 use std::fmt::Error;
 
 use crate::instructions::{Instruction, OperandMap, OperandValue, OperandValues};
-use crate::vm::{ExecutionResult, VM};
+use crate::vm::{ExecutionResult, RegisterId, VM};
 
 pub struct Load {
     operand_values: OperandValues,
@@ -49,19 +49,30 @@ impl Instruction for Load {
     }
 
     fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
-        let destination = match &self.operand_values[0] {
-            OperandValue::u8(value) => *value as usize,
-            OperandValue::u16(value) => *value as usize,
-            OperandValue::None => panic!("Did not receive a destination register")
-        };
+        let destination = self.operand_values[0].as_register_id();
+        let value = self.operand_values[1].as_constant_value();
 
-        let number = match &self.operand_values[1] {
-            OperandValue::u8(value) => *value as i32,
-            OperandValue::u16(value) => *value as i32,
-            OperandValue::None => panic!("Did not receive a value")
-        };
+        vm.set_register(destination, value);
+        Ok(ExecutionResult::Value(value))
+    }
+}
 
-        vm.set_register(destination, number);
-        Ok(ExecutionResult::Value(number))
+#[cfg(test)]
+mod tests {
+    use crate::program::Program;
+    use crate::vm::VM;
+
+    #[test]
+    fn test_load() {
+        let mut program = Program::new(vec![
+            1, 4, 1, 244, // LOAD $4 #500
+            1, 30, 0, 12,  // LOAD $6 #12
+        ]);
+
+        let mut vm = VM::new();
+        vm.run(&mut program);
+
+        assert_eq!(500, vm.register(4).unwrap());
+        assert_eq!(12, vm.register(30).unwrap());
     }
 }

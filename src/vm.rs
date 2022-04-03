@@ -1,17 +1,29 @@
+use crate::instructions::OperandValue;
 use crate::program::Program;
+
+// @Todo: I don't like these names
+pub type RegisterId = usize;
+// The id used for each register, key in the vector
+pub type RegisterValue = i32;
+// The value the VM uses
+pub type Word = u8;
+// A single Opcode or register contents, or whatever
+pub type DoubleWord = u16; // For when a register value is 2 slots
 
 pub enum ExecutionResult {
     // @todo: Decide on SUCCESSFUL Execution Results (and make an Execution Failure)
     Halted,
-    Value(i32),
+    Value(RegisterValue),
 }
 
 pub struct VM {
-    pub(crate) registers: [i32; 32],
+    pub(crate) registers: [RegisterValue; VM::REGISTER_COUNT],
     remainder: u32,
 }
 
 impl VM {
+    pub const REGISTER_COUNT: usize = 32;
+
     pub fn new() -> Self {
         VM {
             registers: [0; 32],
@@ -38,8 +50,25 @@ impl VM {
     //     self.execute_instruction();
     // }
 
-    pub(crate) fn set_register(&mut self, register: usize, value: i32) {
+    pub(crate) fn register(&self, register: RegisterId) -> Result<RegisterValue, ()> {
+        if register > VM::REGISTER_COUNT - 1 {
+            return Err(());
+        }
+
+        Ok(*&self.registers[register].clone())
+    }
+
+    pub(crate) fn all_registers(&self) -> [RegisterValue; VM::REGISTER_COUNT] {
+        *&self.registers.clone()
+    }
+
+    pub(crate) fn set_register(&mut self, register: RegisterId, value: RegisterValue) -> Result<(), ()> {
+        if register > VM::REGISTER_COUNT - 1 {
+            return Err(());
+        }
+
         self.registers[register] = value;
+        Ok(())
     }
 
     pub fn halt(&mut self) {

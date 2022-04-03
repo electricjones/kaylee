@@ -57,7 +57,7 @@ impl Repl {
                 }
                 ".registers" => {
                     println!("Listing all registers and contents");
-                    println!("{:#?}", self.vm.registers);
+                    println!("{:#?}", self.vm.all_registers());
                     println!("End of register listing");
                 }
                 _ => {
