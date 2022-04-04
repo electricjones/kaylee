@@ -124,9 +124,134 @@ impl Instruction for Subtract {
     }
 }
 
+
+pub struct Multiply {
+    operand_values: OperandValues,
+}
+
+impl Multiply {
+    pub const OPCODE: u8 = 4;
+}
+
+impl Instruction for Multiply {
+    fn new(operand_values: OperandValues) -> Self where Self: Sized {
+        Multiply {
+            operand_values
+        }
+    }
+
+    fn name(&self) -> String {
+        "Multiply".to_string()
+    }
+
+    fn help(&self) -> String {
+        "Multiplies to numbers together".to_string()
+    }
+
+    fn signature(&self) -> String {
+        "MUL $D $A $B".to_string()
+    }
+
+    fn identifier(&self) -> String {
+        "MUL".to_string()
+    }
+
+    fn opcode(&self) -> u8 {
+        Multiply::OPCODE
+    }
+
+    fn operand_map() -> OperandMap where Self: Sized {
+        OperandMap::from([1, 1, 1])
+    }
+
+    fn operand_values(&self) -> &OperandValues {
+        &self.operand_values
+    }
+
+    fn set_operand_values(&mut self, operand_values: OperandValues) {
+        self.operand_values = operand_values;
+    }
+
+    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+        let destination = self.operand_values[0].as_register_id();
+
+        let left = self.get_register_value_for_operand(1, vm).unwrap();
+        let right = self.get_register_value_for_operand(2, vm).unwrap();
+
+        let value = left * right;
+
+        vm.set_register(destination, value);
+        Ok(ExecutionResult::Value(value))
+    }
+}
+
+
+pub struct Divide {
+    operand_values: OperandValues,
+}
+
+impl Divide {
+    pub const OPCODE: u8 = 5;
+}
+
+impl Instruction for Divide {
+    fn new(operand_values: OperandValues) -> Self where Self: Sized {
+        Divide {
+            operand_values
+        }
+    }
+
+    fn name(&self) -> String {
+        "Divide".to_string()
+    }
+
+    fn help(&self) -> String {
+        "Divides to numbers".to_string()
+    }
+
+    fn signature(&self) -> String {
+        "DIV $D $A $B".to_string()
+    }
+
+    fn identifier(&self) -> String {
+        "DIV".to_string()
+    }
+
+    fn opcode(&self) -> u8 {
+        Divide::OPCODE
+    }
+
+    fn operand_map() -> OperandMap where Self: Sized {
+        OperandMap::from([1, 1, 1])
+    }
+
+    fn operand_values(&self) -> &OperandValues {
+        &self.operand_values
+    }
+
+    fn set_operand_values(&mut self, operand_values: OperandValues) {
+        self.operand_values = operand_values;
+    }
+
+    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+        let destination = self.operand_values[0].as_register_id();
+
+        let left = self.get_register_value_for_operand(1, vm).unwrap();
+        let right = self.get_register_value_for_operand(2, vm).unwrap();
+
+        let value = left / right;
+        let remainder = (left % right) as u32;
+
+        vm.set_register(destination, value);
+        vm.set_remainder(remainder);
+
+        Ok(ExecutionResult::Value(value))
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::instructions::math::Subtract;
+    use crate::instructions::math::{Divide, Multiply, Subtract};
     use crate::program::Program;
     use crate::vm::VM;
 
@@ -178,5 +303,62 @@ mod tests {
         assert_eq!(200, vm.register(29).unwrap());
         assert_eq!(11, vm.register(30).unwrap());
         assert_eq!(189, vm.register(31).unwrap());
+    }
+
+    #[test]
+    fn test_multiply() {
+        let mut program = Program::new(vec![
+            Multiply::OPCODE, 29, 0, 2,
+            Multiply::OPCODE, 30, 1, 3,
+            Multiply::OPCODE, 31, 29, 30,
+        ]);
+
+        let mut vm = VM::new();
+        vm.set_register(0, 2);
+        vm.set_register(1, 4);
+        vm.set_register(2, 6);
+        vm.set_register(3, 8);
+
+        // $29[12] = 2 * 6
+        // $30[32] = 4 * 8
+        // $31[384] = 12 * 32
+
+        vm.run(&mut program);
+
+        assert_eq!(12, vm.register(29).unwrap());
+        assert_eq!(32, vm.register(30).unwrap());
+        assert_eq!(384, vm.register(31).unwrap());
+    }
+
+    #[test]
+    fn test_divide_no_remainder() {
+        let mut program = Program::new(vec![
+            Divide::OPCODE, 31, 0, 1,
+        ]);
+
+        let mut vm = VM::new();
+        vm.set_register(0, 16);
+        vm.set_register(1, 2);
+
+        vm.run(&mut program);
+
+        assert_eq!(8, vm.register(31).unwrap());
+        assert_eq!(0, vm.remainder());
+    }
+
+    #[test]
+    fn test_divide_with_remainder() {
+        let mut program = Program::new(vec![
+            Divide::OPCODE, 31, 0, 1,
+        ]);
+
+        let mut vm = VM::new();
+        vm.set_register(0, 13);
+        vm.set_register(1, 5);
+
+        vm.run(&mut program);
+
+        assert_eq!(2, vm.register(31).unwrap());
+        assert_eq!(3, vm.remainder());
     }
 }

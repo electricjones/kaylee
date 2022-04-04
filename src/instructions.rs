@@ -1,7 +1,7 @@
 use std::fmt::Error;
 
 use crate::instructions::data::Load;
-use crate::instructions::math::{Add, Subtract};
+use crate::instructions::math::{Add, Divide, Multiply, Subtract};
 use crate::instructions::system::Halt;
 use crate::vm::{DoubleWord, ExecutionResult, RegisterId, RegisterValue, VM, Word};
 
@@ -70,6 +70,9 @@ pub fn decode_next_instruction(instructions: &mut Vec<Word>, program_counter: &m
         Load::OPCODE => build::<Load>(instructions, program_counter),
         Add::OPCODE => build::<Add>(instructions, program_counter),
         Subtract::OPCODE => build::<Subtract>(instructions, program_counter),
+        Multiply::OPCODE => build::<Multiply>(instructions, program_counter),
+        Divide::OPCODE => build::<Divide>(instructions, program_counter),
+
         _ => {
             return Err(InstructionDecodeError::IllegalOpcode);
         }

@@ -22,6 +22,18 @@ pub struct VM {
 }
 
 impl VM {
+    pub(crate) fn remainder(&self) -> u32 {
+        self.remainder
+    }
+}
+
+impl VM {
+    pub(crate) fn set_remainder(&mut self, remainder: u32) {
+        self.remainder = remainder
+    }
+}
+
+impl VM {
     pub const REGISTER_COUNT: usize = 32;
 
     pub fn new() -> Self {
