@@ -16,6 +16,7 @@ pub enum ExecutionResult {
     Halted,
     Value(RegisterValue),
     Jumped(ProgramIndex),
+    Equality(bool),
 }
 
 pub struct VM {
@@ -53,6 +54,7 @@ impl VM {
                 Ok(ExecutionResult::Value(value)) => println!("{value}"),
                 Ok(ExecutionResult::Halted) => println!("Halting"),
                 Ok(ExecutionResult::Jumped(index)) => println!("Jumped to {index}"),
+                Ok(ExecutionResult::Equality(flag)) => println!("Jumped to {flag}"),
                 Err(_) => panic!("Error")
             }
         }

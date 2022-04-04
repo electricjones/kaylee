@@ -1,5 +1,6 @@
 use std::fmt::Error;
 
+use crate::instructions::compare::{Equal, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, NotEqual};
 use crate::instructions::data::Load;
 use crate::instructions::math::{Add, Divide, Multiply, Subtract};
 use crate::instructions::program::{Jump, JumpBackward, JumpForward};
@@ -10,6 +11,7 @@ mod system;
 mod data;
 mod math;
 mod program;
+mod compare;
 
 // @todo: I don't think this actually needs to be limited to 3. I think this can just be a vector with as many operands as wanted
 type OperandMap = [usize; 3];
@@ -79,13 +81,22 @@ pub fn decode_next_instruction(instructions: &Program, program_counter: &mut usi
     match opcode {
         Halt::OPCODE => build::<Halt>(instructions, program_counter),
         Load::OPCODE => build::<Load>(instructions, program_counter),
+
         Add::OPCODE => build::<Add>(instructions, program_counter),
         Subtract::OPCODE => build::<Subtract>(instructions, program_counter),
         Multiply::OPCODE => build::<Multiply>(instructions, program_counter),
         Divide::OPCODE => build::<Divide>(instructions, program_counter),
+
         Jump::OPCODE => build::<Jump>(instructions, program_counter),
         JumpForward::OPCODE => build::<JumpForward>(instructions, program_counter),
         JumpBackward::OPCODE => build::<JumpBackward>(instructions, program_counter),
+
+        Equal::OPCODE => build::<Equal>(instructions, program_counter),
+        NotEqual::OPCODE => build::<NotEqual>(instructions, program_counter),
+        GreaterThan::OPCODE => build::<GreaterThan>(instructions, program_counter),
+        LessThan::OPCODE => build::<LessThan>(instructions, program_counter),
+        GreaterThanOrEqual::OPCODE => build::<GreaterThanOrEqual>(instructions, program_counter),
+        LessThanOrEqual::OPCODE => build::<LessThanOrEqual>(instructions, program_counter),
 
         _ => {
             return Err(InstructionDecodeError::IllegalOpcode);
