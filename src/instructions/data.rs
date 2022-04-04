@@ -1,7 +1,7 @@
 use std::fmt::Error;
 
-use crate::instructions::{Instruction, OperandMap, OperandValue, OperandValues};
-use crate::vm::{ExecutionResult, RegisterId, VM};
+use crate::instructions::{Instruction, OperandMap, OperandValues};
+use crate::vm::{ExecutionResult, VM};
 
 pub struct Load {
     operand_values: OperandValues,
@@ -52,7 +52,7 @@ impl Instruction for Load {
         let destination = self.operand_values[0].as_register_id();
         let value = self.operand_values[1].as_constant_value();
 
-        vm.set_register(destination, value);
+        vm.set_register(destination, value).unwrap();
         Ok(ExecutionResult::Value(value))
     }
 }

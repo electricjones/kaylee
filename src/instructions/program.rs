@@ -51,7 +51,7 @@ impl Instruction for Jump {
     fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
         let destination = self.operand_values[0].as_program_index();
 
-        vm.halt();
-        Ok(ExecutionResult::Value(1))
+        vm.set_program_counter(destination);
+        Ok(ExecutionResult::Jumped(destination))
     }
 }

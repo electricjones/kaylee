@@ -1,5 +1,3 @@
-use crate::instructions::Instruction;
-
 pub type ProgramIndex = usize;
 
 pub type Program = Vec<u8>;

@@ -1,5 +1,5 @@
-use crate::instructions::{Instruction, OperandValue};
-use crate::program::Program;
+use crate::instructions::Instruction;
+use crate::program::{Program, ProgramIndex};
 
 // @Todo: I don't like these names
 pub type RegisterId = usize;
@@ -8,31 +8,21 @@ pub type RegisterValue = i32;
 // The value the VM uses
 pub type Word = u8;
 // A single Opcode or register contents, or whatever
-pub type DoubleWord = u16; // For when a register value is 2 slots
+pub type DoubleWord = u16;
+// For when a register value is 2 slots
 pub type FourWords = u32; // For when a register value is 2 slots
 
 pub enum ExecutionResult {
     // @todo: Decide on SUCCESSFUL Execution Results (and make an Execution Failure)
     Halted,
     Value(RegisterValue),
+    Jumped(ProgramIndex),
 }
 
 pub struct VM {
     pub(crate) registers: [RegisterValue; VM::REGISTER_COUNT],
     remainder: u32,
     program_counter: usize,
-}
-
-impl VM {
-    pub(crate) fn remainder(&self) -> u32 {
-        self.remainder
-    }
-}
-
-impl VM {
-    pub(crate) fn set_remainder(&mut self, remainder: u32) {
-        self.remainder = remainder
-    }
 }
 
 impl VM {
@@ -61,6 +51,7 @@ impl VM {
             match instruction.execute(self) {
                 Ok(ExecutionResult::Value(value)) => println!("{value}"),
                 Ok(ExecutionResult::Halted) => println!("Halting"),
+                Ok(ExecutionResult::Jumped(index)) => println!("Jumped to {index}"),
                 Err(_) => panic!("Error")
             }
         }
@@ -98,6 +89,22 @@ impl VM {
 
     pub fn halt(&mut self) {
         std::process::exit(0);
+    }
+
+    pub(crate) fn remainder(&self) -> u32 {
+        self.remainder
+    }
+
+    pub(crate) fn set_remainder(&mut self, remainder: u32) {
+        self.remainder = remainder
+    }
+
+    pub(crate) fn program_counter(&self) -> ProgramIndex {
+        self.program_counter
+    }
+
+    pub(crate) fn set_program_counter(&mut self, index: ProgramIndex) {
+        self.program_counter = index
     }
 }
 

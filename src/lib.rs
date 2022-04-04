@@ -1,6 +1,6 @@
-mod compiler;
-mod shared;
-mod vm;
+pub mod compiler;
+pub mod shared;
+pub mod vm;
 pub mod repl;
-mod instructions;
-mod program;
+pub mod instructions;
+pub mod program;

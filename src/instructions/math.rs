@@ -1,7 +1,7 @@
 use std::fmt::Error;
 
-use crate::instructions::{Instruction, OperandMap, OperandValue, OperandValues};
-use crate::vm::{ExecutionResult, RegisterValue, VM};
+use crate::instructions::{Instruction, OperandMap, OperandValues};
+use crate::vm::{ExecutionResult, VM};
 
 pub struct Add {
     operand_values: OperandValues,
@@ -58,7 +58,7 @@ impl Instruction for Add {
 
         let value = left + right;
 
-        vm.set_register(destination, value);
+        vm.set_register(destination, value).unwrap();
         Ok(ExecutionResult::Value(value))
     }
 }
@@ -119,7 +119,7 @@ impl Instruction for Subtract {
 
         let value = left - right;
 
-        vm.set_register(destination, value);
+        vm.set_register(destination, value).unwrap();
         Ok(ExecutionResult::Value(value))
     }
 }
@@ -180,7 +180,7 @@ impl Instruction for Multiply {
 
         let value = left * right;
 
-        vm.set_register(destination, value);
+        vm.set_register(destination, value).unwrap();
         Ok(ExecutionResult::Value(value))
     }
 }
@@ -242,7 +242,7 @@ impl Instruction for Divide {
         let value = left / right;
         let remainder = (left % right) as u32;
 
-        vm.set_register(destination, value);
+        vm.set_register(destination, value).unwrap();
         vm.set_remainder(remainder);
 
         Ok(ExecutionResult::Value(value))
@@ -264,10 +264,10 @@ mod tests {
         ]);
 
         let mut vm = VM::new();
-        vm.set_register(0, 12);
-        vm.set_register(1, 10);
-        vm.set_register(2, 500);
-        vm.set_register(3, 7);
+        vm.set_register(0, 12).unwrap();
+        vm.set_register(1, 10).unwrap();
+        vm.set_register(2, 500).unwrap();
+        vm.set_register(3, 7).unwrap();
 
         // $29[512] = 12 + 500
         // $30[17] = 10 + 7
@@ -289,10 +289,10 @@ mod tests {
         ]);
 
         let mut vm = VM::new();
-        vm.set_register(0, 222);
-        vm.set_register(1, 14);
-        vm.set_register(2, 22);
-        vm.set_register(3, 3);
+        vm.set_register(0, 222).unwrap();
+        vm.set_register(1, 14).unwrap();
+        vm.set_register(2, 22).unwrap();
+        vm.set_register(3, 3).unwrap();
 
         // $29[200] = 222 - 22
         // $30[11] = 14 - 3
@@ -314,10 +314,10 @@ mod tests {
         ]);
 
         let mut vm = VM::new();
-        vm.set_register(0, 2);
-        vm.set_register(1, 4);
-        vm.set_register(2, 6);
-        vm.set_register(3, 8);
+        vm.set_register(0, 2).unwrap();
+        vm.set_register(1, 4).unwrap();
+        vm.set_register(2, 6).unwrap();
+        vm.set_register(3, 8).unwrap();
 
         // $29[12] = 2 * 6
         // $30[32] = 4 * 8
@@ -337,8 +337,8 @@ mod tests {
         ]);
 
         let mut vm = VM::new();
-        vm.set_register(0, 16);
-        vm.set_register(1, 2);
+        vm.set_register(0, 16).unwrap();
+        vm.set_register(1, 2).unwrap();
 
         vm.run(program);
 
@@ -353,8 +353,8 @@ mod tests {
         ]);
 
         let mut vm = VM::new();
-        vm.set_register(0, 13);
-        vm.set_register(1, 5);
+        vm.set_register(0, 13).unwrap();
+        vm.set_register(1, 5).unwrap();
 
         vm.run(program);
 
@@ -378,11 +378,11 @@ mod tests {
         ]);
 
         let mut vm = VM::new();
-        vm.set_register(0, 2);
-        vm.set_register(1, 4);
-        vm.set_register(2, 6);
-        vm.set_register(3, 8);
-        vm.set_register(4, 9);
+        vm.set_register(0, 2).unwrap();
+        vm.set_register(1, 4).unwrap();
+        vm.set_register(2, 6).unwrap();
+        vm.set_register(3, 8).unwrap();
+        vm.set_register(4, 9).unwrap();
 
         // 29[8] = 2 + 6
         // 30[14] = 8 + 6
