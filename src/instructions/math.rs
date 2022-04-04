@@ -252,12 +252,12 @@ impl Instruction for Divide {
 #[cfg(test)]
 mod tests {
     use crate::instructions::math::{Add, Divide, Multiply, Subtract};
-    use crate::program::Program;
+    use crate::vm::Program;
     use crate::vm::VM;
 
     #[test]
     fn test_add() {
-        let mut program = Program::from([
+        let program = Program::from([
             2, 29, 0, 2,
             2, 30, 1, 3,
             2, 31, 29, 30,
@@ -282,7 +282,7 @@ mod tests {
 
     #[test]
     fn test_subtract() {
-        let mut program = Program::from([
+        let program = Program::from([
             Subtract::OPCODE, 29, 0, 2,
             Subtract::OPCODE, 30, 1, 3,
             Subtract::OPCODE, 31, 29, 30,
@@ -307,7 +307,7 @@ mod tests {
 
     #[test]
     fn test_multiply() {
-        let mut program = Program::from([
+        let program = Program::from([
             Multiply::OPCODE, 29, 0, 2,
             Multiply::OPCODE, 30, 1, 3,
             Multiply::OPCODE, 31, 29, 30,
@@ -332,7 +332,7 @@ mod tests {
 
     #[test]
     fn test_divide_no_remainder() {
-        let mut program = Program::from([
+        let program = Program::from([
             Divide::OPCODE, 31, 0, 1,
         ]);
 
@@ -348,7 +348,7 @@ mod tests {
 
     #[test]
     fn test_divide_with_remainder() {
-        let mut program = Program::from([
+        let program = Program::from([
             Divide::OPCODE, 31, 0, 1,
         ]);
 
@@ -364,7 +364,7 @@ mod tests {
 
     #[test]
     fn test_math() {
-        let mut program = Program::from([
+        let program = Program::from([
             Add::OPCODE, 29, 0, 2,
             Add::OPCODE, 30, 29, 2,
             Subtract::OPCODE, 30, 29, 1,

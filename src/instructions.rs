@@ -4,8 +4,7 @@ use crate::instructions::data::Load;
 use crate::instructions::math::{Add, Divide, Multiply, Subtract};
 use crate::instructions::program::Jump;
 use crate::instructions::system::Halt;
-use crate::program::{Program, ProgramIndex};
-use crate::vm::{DoubleWord, ExecutionResult, FourWords, RegisterId, RegisterValue, VM, Word};
+use crate::vm::{DoubleWord, ExecutionResult, FourWords, Program, ProgramIndex, RegisterId, RegisterValue, VM, Word};
 
 mod system;
 mod data;
@@ -171,7 +170,7 @@ pub trait Instruction {
 
 #[cfg(test)]
 mod tests {
-    use crate::instructions::{consume_and_parse_values, OperandMap, OperandValue, OperandValues};
+    use crate::instructions::{consume_and_parse_values, OperandMap, OperandValue};
 
     #[test]
     fn consume_and_parse_values_0() {

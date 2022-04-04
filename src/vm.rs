@@ -1,5 +1,4 @@
 use crate::instructions::Instruction;
-use crate::program::{Program, ProgramIndex};
 
 // @Todo: I don't like these names
 pub type RegisterId = usize;
@@ -114,7 +113,7 @@ mod tests {
 
     #[test]
     fn program() {
-        let mut program = Program::from([
+        let program = Program::from([
             // 0,           // HALT
             1, 4, 1, 244, // LOAD $4 #500
             1, 6, 0, 12,  // LOAD $6 #12
@@ -192,3 +191,6 @@ mod tests {
 //         assert_eq!(test_vm.counter, 4);
 //     }
 }
+
+pub type ProgramIndex = usize;
+pub type Program = Vec<u8>;

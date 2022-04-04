@@ -37,7 +37,7 @@ impl Instruction for Jump {
     }
 
     fn operand_map() -> OperandMap {
-        OperandMap::from([2, 0, 0])
+        OperandMap::from([3, 0, 0])
     }
 
     fn operand_values(&self) -> &OperandValues {
@@ -53,5 +53,46 @@ impl Instruction for Jump {
 
         vm.set_program_counter(destination);
         Ok(ExecutionResult::Jumped(destination))
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::instructions::data::Load;
+    use crate::instructions::program::Jump;
+    use crate::instructions::system::Halt;
+    use crate::vm::{Program, VM};
+
+    #[test]
+    fn test_jump() {
+        let program = Program::from([
+            // A bunch of random load instructions
+            Load::OPCODE, 0, 0, 100,
+            Load::OPCODE, 1, 0, 100,
+            Jump::OPCODE, 0, 0, 24,
+            Load::OPCODE, 2, 0, 100,
+            Load::OPCODE, 3, 0, 100,
+            Load::OPCODE, 4, 0, 100,
+            Load::OPCODE, 5, 0, 100,
+        ]);
+
+        let mut vm = VM::new();
+        vm.run(program);
+
+        // Should set these
+        assert_eq!(100, vm.register(0).unwrap());
+        assert_eq!(100, vm.register(1).unwrap());
+
+        // Should skip these
+        assert_eq!(0, vm.register(2).unwrap());
+        assert_eq!(0, vm.register(3).unwrap());
+        assert_eq!(0, vm.register(4).unwrap());
+
+        // And hit this one at the end
+        assert_eq!(100, vm.register(5).unwrap());
+
+        // And check on the counter itself
+        assert_eq!(28, vm.program_counter());
     }
 }

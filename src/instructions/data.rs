@@ -59,12 +59,12 @@ impl Instruction for Load {
 
 #[cfg(test)]
 mod tests {
-    use crate::program::Program;
+    use crate::vm::Program;
     use crate::vm::VM;
 
     #[test]
     fn test_load() {
-        let mut program = Program::from([
+        let program = Program::from([
             1, 4, 1, 244, // LOAD $4 #500
             1, 30, 0, 12,  // LOAD $6 #12
         ]);

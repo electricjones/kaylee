@@ -2,9 +2,9 @@ use std;
 use std::io;
 use std::io::Write;
 
-// use std::num::ParseIntError;
-use crate::program::Program;
 use crate::shared::parse_hex;
+// use std::num::ParseIntError;
+use crate::vm::Program;
 use crate::vm::VM;
 
 /// Core structure for the REPL for the Assembler
