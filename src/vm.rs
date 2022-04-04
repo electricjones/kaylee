@@ -9,6 +9,7 @@ pub type RegisterValue = i32;
 pub type Word = u8;
 // A single Opcode or register contents, or whatever
 pub type DoubleWord = u16; // For when a register value is 2 slots
+pub type FourWords = u32; // For when a register value is 2 slots
 
 pub enum ExecutionResult {
     // @todo: Decide on SUCCESSFUL Execution Results (and make an Execution Failure)

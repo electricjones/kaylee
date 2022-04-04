@@ -1,5 +1,7 @@
 use crate::instructions::Instruction;
 
+pub type ProgramIndex = usize;
+
 pub struct Program {
     counter: usize,
     instructions: Vec<u8>,

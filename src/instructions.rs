@@ -2,20 +2,25 @@ use std::fmt::Error;
 
 use crate::instructions::data::Load;
 use crate::instructions::math::{Add, Divide, Multiply, Subtract};
+use crate::instructions::program::Jump;
 use crate::instructions::system::Halt;
-use crate::vm::{DoubleWord, ExecutionResult, RegisterId, RegisterValue, VM, Word};
+use crate::program::ProgramIndex;
+use crate::vm::{DoubleWord, ExecutionResult, FourWords, RegisterId, RegisterValue, VM, Word};
 
 mod system;
 mod data;
 mod math;
+mod program;
 
 type OperandMap = [usize; 3];
 
 type OperandValues = [OperandValue; 3];
 
+#[derive(PartialOrd, PartialEq, Debug)]
 pub enum OperandValue {
     u8(Word),
     u16(DoubleWord),
+    // u32(FourWords),
     None,
 }
 
@@ -39,6 +44,14 @@ impl OperandValue {
     // @todo: I tried to do these conversions using TryFrom and a generic `into<T>(&self) -> T` function, but neither worked.
     // @todo: There is certainly a more idiomatic way
     fn as_register_id(&self) -> RegisterId {
+        match self {
+            OperandValue::u8(value) => *value as usize,
+            OperandValue::u16(value) => *value as usize,
+            OperandValue::None => panic!("Did not receive a destination register")
+        }
+    }
+
+    fn as_program_index(&self) -> ProgramIndex {
         match self {
             OperandValue::u8(value) => *value as usize,
             OperandValue::u16(value) => *value as usize,
@@ -72,6 +85,7 @@ pub fn decode_next_instruction(instructions: &mut Vec<Word>, program_counter: &m
         Subtract::OPCODE => build::<Subtract>(instructions, program_counter),
         Multiply::OPCODE => build::<Multiply>(instructions, program_counter),
         Divide::OPCODE => build::<Divide>(instructions, program_counter),
+        Jump::OPCODE => build::<Jump>(instructions, program_counter),
 
         _ => {
             return Err(InstructionDecodeError::IllegalOpcode);
@@ -110,6 +124,16 @@ pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &mut Vec<
                 operand_values[index] = OperandValue::u16(((instructions[*program_counter] as DoubleWord) << 8) | instructions[*program_counter + 1] as u16);
                 *program_counter += 2;
             }
+            // 3 => {
+            //     // @todo: This should really be u24
+            //     operand_values[index] = OperandValue::u32(
+            //         ((instructions[*program_counter] as FourWords) << 8)
+            //         | ((instructions[*program_counter + 1] as FourWords) << 8)
+            //         | instructions[*program_counter + 2] as u32
+            //     );
+            //
+            //     *program_counter += 3;
+            // }
             _ => {
                 return Err(InstructionDecodeError::InvalidValueSize);
             }
@@ -140,5 +164,91 @@ pub trait Instruction {
     fn get_register_value_for_operand(&self, operand_value_index: usize, vm: &mut VM) -> Result<RegisterValue, ()> {
         let register = self.operand_values()[operand_value_index].as_register_id();
         vm.register(register)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::instructions::{consume_and_parse_values, OperandMap, OperandValue, OperandValues};
+
+    #[test]
+    fn consume_and_parse_values_0() {
+        let operand_map = OperandMap::from([0, 0, 0]);
+        let mut instructions: Vec<u8> = vec![0, 0, 0];
+
+        let expected = [
+            OperandValue::None,
+            OperandValue::None,
+            OperandValue::None,
+        ];
+
+        test_consume_and_parse_values(operand_map, &mut instructions, &expected, 0);
+    }
+
+    #[test]
+    fn consume_and_parse_values_all_1() {
+        let operand_map = OperandMap::from([1, 1, 1]);
+        let mut instructions: Vec<u8> = vec![30, 40, 50];
+
+        let expected = [
+            OperandValue::u8(30),
+            OperandValue::u8(40),
+            OperandValue::u8(50),
+        ];
+
+        test_consume_and_parse_values(operand_map, &mut instructions, &expected, 3);
+    }
+
+    #[test]
+    fn consume_and_parse_values_2_1() {
+        let operand_map = OperandMap::from([2, 1, 0]);
+        let mut instructions: Vec<u8> = vec![1, 244, 100];
+
+        let expected = [
+            OperandValue::u16(500),
+            OperandValue::u8(100),
+            OperandValue::None
+        ];
+
+        test_consume_and_parse_values(operand_map, &mut instructions, &expected, 3);
+    }
+
+    #[test]
+    fn consume_and_parse_values_1_0_0() {
+        let operand_map = OperandMap::from([1, 0, 0]);
+        let mut instructions: Vec<u8> = vec![70];
+
+        let expected = [
+            OperandValue::u8(70),
+            OperandValue::None,
+            OperandValue::None
+        ];
+
+        test_consume_and_parse_values(operand_map, &mut instructions, &expected, 1);
+    }
+
+    #[test]
+    fn consume_and_parse_values_1_1_0() {
+        let operand_map = OperandMap::from([1, 1, 0]);
+        let mut instructions: Vec<u8> = vec![70, 80];
+
+        let expected = [
+            OperandValue::u8(70),
+            OperandValue::u8(80),
+            OperandValue::None
+        ];
+
+        test_consume_and_parse_values(operand_map, &mut instructions, &expected, 2);
+    }
+
+    fn test_consume_and_parse_values(operand_map: [usize; 3], mut instructions: &mut Vec<u8>, expected: &[OperandValue; 3], expected_counter: usize) {
+        let mut counter: usize = 0;
+
+        let result = consume_and_parse_values(operand_map, &mut instructions, &mut counter).unwrap();
+        for (key, value) in result.iter().enumerate() {
+            assert_eq!(&expected[key], value, "failed on value {}", key);
+        }
+
+        assert_eq!(expected_counter, counter);
     }
 }
