@@ -1,7 +1,7 @@
 use std::fmt::Error;
 
 use crate::instructions::data::Load;
-use crate::instructions::math::Add;
+use crate::instructions::math::{Add, Subtract};
 use crate::instructions::system::Halt;
 use crate::vm::{DoubleWord, ExecutionResult, RegisterId, RegisterValue, VM, Word};
 
@@ -69,6 +69,7 @@ pub fn decode_next_instruction(instructions: &mut Vec<Word>, program_counter: &m
         Halt::OPCODE => build::<Halt>(instructions, program_counter),
         Load::OPCODE => build::<Load>(instructions, program_counter),
         Add::OPCODE => build::<Add>(instructions, program_counter),
+        Subtract::OPCODE => build::<Subtract>(instructions, program_counter),
         _ => {
             return Err(InstructionDecodeError::IllegalOpcode);
         }
@@ -137,18 +138,4 @@ pub trait Instruction {
         let register = self.operand_values()[operand_value_index].as_register_id();
         vm.register(register)
     }
-
-    // fn sandbox() {
-    //     let destination = match &self.operand_values[0] {
-    //         OperandValue::u8(value) => *value as usize,
-    //         OperandValue::u16(value) => *value as usize,
-    //         OperandValue::None => panic!("Did not receive a destination register")
-    //     };
-    //
-    //     let number = match &self.operand_values[1] {
-    //         OperandValue::u8(value) => *value as i32,
-    //         OperandValue::u16(value) => *value as i32,
-    //         OperandValue::None => panic!("Did not receive a value")
-    //     };
-    // }
 }
