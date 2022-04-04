@@ -22,6 +22,7 @@ pub struct VM {
     pub(crate) registers: [RegisterValue; VM::REGISTER_COUNT],
     remainder: u32,
     program_counter: usize,
+    halted: bool,
 }
 
 impl VM {
@@ -32,11 +33,12 @@ impl VM {
             registers: [0; VM::REGISTER_COUNT],
             remainder: 0,
             program_counter: 0,
+            halted: false,
         }
     }
 
     fn next(&mut self, instructions: &Program) -> Option<Box<dyn Instruction>> {
-        if self.program_counter >= instructions.len() {
+        if self.program_counter >= instructions.len() || self.halted {
             return None;
         }
 
@@ -87,7 +89,7 @@ impl VM {
     }
 
     pub fn halt(&mut self) {
-        std::process::exit(0);
+        self.halted = true;
     }
 
     pub(crate) fn remainder(&self) -> u32 {
@@ -103,6 +105,7 @@ impl VM {
     }
 
     pub(crate) fn set_program_counter(&mut self, index: ProgramIndex) {
+        // @todo: No program checking here since VM doesn't actually have a program
         self.program_counter = index
     }
 }
