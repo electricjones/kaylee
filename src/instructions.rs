@@ -157,6 +157,18 @@ pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &Program,
     Ok(operand_values)
 }
 
+fn basic_register_execution<I: Instruction, F: Fn(RegisterValue, RegisterValue) -> RegisterValue>(instruction: &I, vm: &mut VM, callback: F) -> RegisterValue {
+    let destination = instruction.operand_values()[0].as_register_id();
+
+    let left = instruction.get_register_value_for_operand(1, vm).unwrap();
+    let right = instruction.get_register_value_for_operand(2, vm).unwrap();
+
+    let result = callback(left, right);
+
+    vm.set_register(destination, result as RegisterValue).unwrap();
+    result
+}
+
 pub trait Instruction {
     // Also requires a `pub const OPCODE: u8`
     fn new(operand_values: OperandValues) -> Self where Self: Sized;
@@ -180,6 +192,7 @@ pub trait Instruction {
         vm.register(register)
     }
 }
+
 
 #[cfg(test)]
 mod tests {

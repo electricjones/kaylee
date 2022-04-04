@@ -1,5 +1,6 @@
 use std::fmt::Error;
 
+use crate::instructions;
 use crate::instructions::{Instruction, OperandMap, OperandValues};
 use crate::vm::{ExecutionResult, RegisterValue, VM};
 
@@ -112,15 +113,14 @@ impl Instruction for NotEqual {
     }
 
     fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
-        let destination = self.operand_values[0].as_register_id();
+        let callback = |left: RegisterValue, right: RegisterValue| { (left != right) as RegisterValue };
 
-        let left = self.get_register_value_for_operand(1, vm).unwrap();
-        let right = self.get_register_value_for_operand(2, vm).unwrap();
-
-        let result = left != right;
-
-        vm.set_register(destination, result as RegisterValue).unwrap();
-        Ok(ExecutionResult::Equality(result))
+        let result = instructions::basic_register_execution(self, vm, callback);
+        match result {
+            1 => Ok(ExecutionResult::Equality(true)),
+            0 => Ok(ExecutionResult::Equality(false)),
+            _ => panic!("Equality returned something other than a 0 or 1")
+        }
     }
 }
 
