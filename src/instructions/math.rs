@@ -251,7 +251,7 @@ impl Instruction for Divide {
 
 #[cfg(test)]
 mod tests {
-    use crate::instructions::math::{Divide, Multiply, Subtract};
+    use crate::instructions::math::{Add, Divide, Multiply, Subtract};
     use crate::program::Program;
     use crate::vm::VM;
 
@@ -360,5 +360,52 @@ mod tests {
 
         assert_eq!(2, vm.register(31).unwrap());
         assert_eq!(3, vm.remainder());
+    }
+
+    #[test]
+    fn test_math() {
+        let mut program = Program::new(vec![
+            Add::OPCODE, 29, 0, 2,
+            Add::OPCODE, 30, 29, 2,
+            Subtract::OPCODE, 30, 29, 1,
+            Add::OPCODE, 28, 3, 4,
+            Multiply::OPCODE, 31, 3, 2,
+            Divide::OPCODE, 3, 29, 30,
+            Subtract::OPCODE, 4, 2, 30,
+            Add::OPCODE, 0, 3, 28,
+            Multiply::OPCODE, 1, 3, 4,
+            Divide::OPCODE, 31, 28, 30,
+        ]);
+
+        let mut vm = VM::new();
+        vm.set_register(0, 2);
+        vm.set_register(1, 4);
+        vm.set_register(2, 6);
+        vm.set_register(3, 8);
+        vm.set_register(4, 9);
+
+        // 29[8] = 2 + 6
+        // 30[14] = 8 + 6
+        // 30[4] = 8 - 4
+        // 28[17] = 8 + 9
+        // 31[48] = 8 * 6
+        // 3[2] = 8 / 4
+        // 4[2] = 6 - 4
+        // 0[19] = 2 + 17
+        // 1[4] = 2 * 2
+        // 31[4r1] = 17 / 4
+
+        vm.run(&mut program);
+
+        assert_eq!(19, vm.register(0).unwrap());
+        assert_eq!(4, vm.register(1).unwrap());
+        assert_eq!(6, vm.register(2).unwrap());
+        assert_eq!(2, vm.register(3).unwrap());
+        assert_eq!(2, vm.register(4).unwrap());
+        assert_eq!(17, vm.register(28).unwrap());
+        assert_eq!(8, vm.register(29).unwrap());
+        assert_eq!(4, vm.register(30).unwrap());
+        assert_eq!(4, vm.register(31).unwrap());
+        assert_eq!(1, vm.remainder());
     }
 }
