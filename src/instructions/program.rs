@@ -51,9 +51,6 @@ impl Instruction for Jump {
     fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
         let destination = self.operand_values[0].as_program_index();
 
-        let left = self.get_register_value_for_operand(1, vm).unwrap();
-        let right = self.get_register_value_for_operand(2, vm).unwrap();
-
         vm.halt();
         Ok(ExecutionResult::Value(1))
     }

@@ -36,7 +36,7 @@ impl Repl {
 
             self.command_buffer.push(buffer.to_string());
 
-            let mut program = Program::new(vec![]);
+            let mut program = Program::new();
 
             match buffer {
                 ".quit" => {
@@ -48,13 +48,13 @@ impl Repl {
                         println!("{command}");
                     }
                 }
-                ".program" => {
-                    println!("Listing entire program instructions");
-                    for instruction in program {
-                        println!("{}", instruction.signature()); // @todo: print actual instruction with values
-                    }
-                    println!("End of instructions");
-                }
+                // ".program" => {
+                //     println!("Listing entire program instructions");
+                //     for instruction in program {
+                //         println!("{}", instruction.signature()); // @todo: print actual instruction with values
+                //     }
+                //     println!("End of instructions");
+                // }
                 ".registers" => {
                     println!("Listing all registers and contents");
                     println!("{:#?}", self.vm.all_registers());

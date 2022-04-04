@@ -64,13 +64,13 @@ mod tests {
 
     #[test]
     fn test_load() {
-        let mut program = Program::new(vec![
+        let mut program = Program::from([
             1, 4, 1, 244, // LOAD $4 #500
             1, 30, 0, 12,  // LOAD $6 #12
         ]);
 
         let mut vm = VM::new();
-        vm.run(&mut program);
+        vm.run(program);
 
         assert_eq!(500, vm.register(4).unwrap());
         assert_eq!(12, vm.register(30).unwrap());

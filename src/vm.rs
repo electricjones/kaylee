@@ -1,4 +1,4 @@
-use crate::instructions::OperandValue;
+use crate::instructions::{Instruction, OperandValue};
 use crate::program::Program;
 
 // @Todo: I don't like these names
@@ -20,6 +20,7 @@ pub enum ExecutionResult {
 pub struct VM {
     pub(crate) registers: [RegisterValue; VM::REGISTER_COUNT],
     remainder: u32,
+    program_counter: usize,
 }
 
 impl VM {
@@ -39,13 +40,24 @@ impl VM {
 
     pub fn new() -> Self {
         VM {
-            registers: [0; 32],
+            registers: [0; VM::REGISTER_COUNT],
             remainder: 0,
+            program_counter: 0,
         }
     }
 
-    pub fn run(&mut self, program: &mut Program) {
-        for instruction in program {
+    fn next(&mut self, instructions: &Program) -> Option<Box<dyn Instruction>> {
+        if self.program_counter >= instructions.len() {
+            return None;
+        }
+
+        Some(crate::instructions::decode_next_instruction(instructions, &mut self.program_counter).unwrap())
+    }
+
+
+    // @todo: I don't want the program to be mutable, except for the counter
+    pub fn run(&mut self, program: Program) {
+        while let Some(instruction) = self.next(&program) {
             match instruction.execute(self) {
                 Ok(ExecutionResult::Value(value)) => println!("{value}"),
                 Ok(ExecutionResult::Halted) => println!("Halting"),
@@ -95,7 +107,7 @@ mod tests {
 
     #[test]
     fn program() {
-        let mut program = Program::new(vec![
+        let mut program = Program::from([
             // 0,           // HALT
             1, 4, 1, 244, // LOAD $4 #500
             1, 6, 0, 12,  // LOAD $6 #12
@@ -106,124 +118,10 @@ mod tests {
         // }
 
         let mut vm = VM::new();
-        vm.run(&mut program);
+        vm.run(program);
         assert_eq!(true, true);
     }
 
-//     #[test]
-//     fn test_create_vm() {
-//         let test_vm = VM::new();
-//         assert_eq!(test_vm.registers[0], 0)
-//     }
-//
-//     #[test]
-//     fn test_opcode_halt() {
-//         let mut test_vm = VM::new();
-//         let test_bytes = vec![0, 0, 0, 0];
-//         test_vm.instructions = test_bytes;
-//         test_vm.run();
-//         assert_eq!(test_vm.counter, 1);
-//     }
-//
-//     #[test]
-//     fn test_opcode_illegal() {
-//         let mut test_vm = VM::new();
-//         let test_bytes = vec![200, 0, 0, 0];
-//         test_vm.instructions = test_bytes;
-//         test_vm.run();
-//         assert_eq!(test_vm.counter, 1);
-//     }
-//
-//     #[test]
-//     fn test_load_opcode() {
-//         let mut test_vm = VM::new();
-//         test_vm.instructions = vec![1, 0, 1, 244];
-//         test_vm.run();
-//         assert_eq!(test_vm.registers[0], 500);
-//     }
-//
-//     #[test]
-//     fn test_add() {
-//         let mut test_vm = VM::new();
-//         test_vm.instructions = vec![
-//             1, 1, 0, 4, // LOAD $1 #4
-//             1, 2, 0, 5, // LOAD $2 #5
-//             2, 0, 1, 2, // ADD $0 $1 $2
-//         ];
-//         test_vm.run();
-//         assert_eq!(test_vm.registers[0], 9);
-//     }
-//
-//     #[test]
-//     fn test_subtract() {
-//         let mut test_vm = VM::new();
-//         test_vm.instructions = vec![
-//             1, 1, 0, 10, // LOAD $1 #4
-//             1, 2, 0, 6,  // LOAD $2 #5
-//             3, 0, 1, 2,  // SUB $0 $1 $2
-//         ];
-//         test_vm.run();
-//         assert_eq!(test_vm.registers[0], 4);
-//     }
-//
-//     #[test]
-//     fn test_multiply() {
-//         let mut test_vm = VM::new();
-//         test_vm.instructions = vec![
-//             1, 1, 0, 2, // LOAD $1 #2
-//             1, 2, 0, 3,  // LOAD $2 #3
-//             4, 0, 1, 2,  // MUL $0 $1 $2
-//         ];
-//         test_vm.run();
-//         assert_eq!(test_vm.registers[0], 6);
-//     }
-//
-//     #[test]
-//     fn test_divide_no_remainder() {
-//         let mut test_vm = VM::new();
-//         test_vm.instructions = vec![
-//             1, 1, 0, 6, // LOAD $1 #2
-//             1, 2, 0, 2,  // LOAD $2 #3
-//             5, 0, 1, 2,  // DIV $0 $1 $2
-//         ];
-//         test_vm.run();
-//         assert_eq!(test_vm.registers[0], 3);
-//         assert_eq!(test_vm.remainder, 0);
-//     }
-//
-//     #[test]
-//     fn test_divide_with_remainder() {
-//         let mut test_vm = VM::new();
-//         test_vm.instructions = vec![
-//             1, 1, 0, 6, // LOAD $1 #2
-//             1, 2, 0, 4,  // LOAD $2 #3
-//             5, 0, 1, 2,  // DIV $0 $1 $2
-//         ];
-//         test_vm.run();
-//         assert_eq!(test_vm.registers[0], 1);
-//         assert_eq!(test_vm.remainder, 2);
-//     }
-//
-//     #[test]
-//     fn test_math() {
-//         let mut test_vm = VM::new();
-//         test_vm.instructions = vec![
-//             1, 1, 0, 6, // LOAD $1 #2
-//             1, 2, 0, 4,  // LOAD $2 #3
-//             2, 0, 1, 2,  // ADD $0 $1 $2
-//             3, 3, 0, 2,  // SUB $3 $0 $2
-//             4, 4, 1, 2,  // MUL
-//             5, 5, 0, 1,  // DIV
-//         ];
-//         test_vm.run();
-//         assert_eq!(test_vm.registers[0], 10);
-//         assert_eq!(test_vm.registers[1], 6);
-//         assert_eq!(test_vm.registers[2], 4);
-//         assert_eq!(test_vm.registers[3], 6);
-//         assert_eq!(test_vm.registers[4], 24);
-//         assert_eq!(test_vm.registers[5], 1);
-//     }
-//
 //     #[test]
 //     fn test_jmp_opcode() {
 //         let mut test_vm = VM::new();

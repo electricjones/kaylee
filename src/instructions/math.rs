@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_add() {
-        let mut program = Program::new(vec![
+        let mut program = Program::from([
             2, 29, 0, 2,
             2, 30, 1, 3,
             2, 31, 29, 30,
@@ -273,7 +273,7 @@ mod tests {
         // $30[17] = 10 + 7
         // $31[529] = 512 + 17
 
-        vm.run(&mut program);
+        vm.run(program);
 
         assert_eq!(512, vm.register(29).unwrap());
         assert_eq!(17, vm.register(30).unwrap());
@@ -282,7 +282,7 @@ mod tests {
 
     #[test]
     fn test_subtract() {
-        let mut program = Program::new(vec![
+        let mut program = Program::from([
             Subtract::OPCODE, 29, 0, 2,
             Subtract::OPCODE, 30, 1, 3,
             Subtract::OPCODE, 31, 29, 30,
@@ -298,7 +298,7 @@ mod tests {
         // $30[11] = 14 - 3
         // $31[189] = 200 - 11
 
-        vm.run(&mut program);
+        vm.run(program);
 
         assert_eq!(200, vm.register(29).unwrap());
         assert_eq!(11, vm.register(30).unwrap());
@@ -307,7 +307,7 @@ mod tests {
 
     #[test]
     fn test_multiply() {
-        let mut program = Program::new(vec![
+        let mut program = Program::from([
             Multiply::OPCODE, 29, 0, 2,
             Multiply::OPCODE, 30, 1, 3,
             Multiply::OPCODE, 31, 29, 30,
@@ -323,7 +323,7 @@ mod tests {
         // $30[32] = 4 * 8
         // $31[384] = 12 * 32
 
-        vm.run(&mut program);
+        vm.run(program);
 
         assert_eq!(12, vm.register(29).unwrap());
         assert_eq!(32, vm.register(30).unwrap());
@@ -332,7 +332,7 @@ mod tests {
 
     #[test]
     fn test_divide_no_remainder() {
-        let mut program = Program::new(vec![
+        let mut program = Program::from([
             Divide::OPCODE, 31, 0, 1,
         ]);
 
@@ -340,7 +340,7 @@ mod tests {
         vm.set_register(0, 16);
         vm.set_register(1, 2);
 
-        vm.run(&mut program);
+        vm.run(program);
 
         assert_eq!(8, vm.register(31).unwrap());
         assert_eq!(0, vm.remainder());
@@ -348,7 +348,7 @@ mod tests {
 
     #[test]
     fn test_divide_with_remainder() {
-        let mut program = Program::new(vec![
+        let mut program = Program::from([
             Divide::OPCODE, 31, 0, 1,
         ]);
 
@@ -356,7 +356,7 @@ mod tests {
         vm.set_register(0, 13);
         vm.set_register(1, 5);
 
-        vm.run(&mut program);
+        vm.run(program);
 
         assert_eq!(2, vm.register(31).unwrap());
         assert_eq!(3, vm.remainder());
@@ -364,7 +364,7 @@ mod tests {
 
     #[test]
     fn test_math() {
-        let mut program = Program::new(vec![
+        let mut program = Program::from([
             Add::OPCODE, 29, 0, 2,
             Add::OPCODE, 30, 29, 2,
             Subtract::OPCODE, 30, 29, 1,
@@ -395,7 +395,7 @@ mod tests {
         // 1[4] = 2 * 2
         // 31[4r1] = 17 / 4
 
-        vm.run(&mut program);
+        vm.run(program);
 
         assert_eq!(19, vm.register(0).unwrap());
         assert_eq!(4, vm.register(1).unwrap());

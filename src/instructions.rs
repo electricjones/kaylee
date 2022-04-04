@@ -4,7 +4,7 @@ use crate::instructions::data::Load;
 use crate::instructions::math::{Add, Divide, Multiply, Subtract};
 use crate::instructions::program::Jump;
 use crate::instructions::system::Halt;
-use crate::program::ProgramIndex;
+use crate::program::{Program, ProgramIndex};
 use crate::vm::{DoubleWord, ExecutionResult, FourWords, RegisterId, RegisterValue, VM, Word};
 
 mod system;
@@ -73,7 +73,7 @@ pub enum InstructionDecodeError {
     IllegalOpcode,
 }
 
-pub fn decode_next_instruction(instructions: &mut Vec<Word>, program_counter: &mut usize) -> Result<Box<dyn Instruction>, InstructionDecodeError> {
+pub fn decode_next_instruction(instructions: &Program, program_counter: &mut usize) -> Result<Box<dyn Instruction>, InstructionDecodeError> {
     let opcode: Word = instructions[*program_counter];
     *program_counter += 1;
 
@@ -93,7 +93,7 @@ pub fn decode_next_instruction(instructions: &mut Vec<Word>, program_counter: &m
 }
 
 
-pub fn build<T: 'static + Instruction>(instructions: &mut Vec<u8>, program_counter: &mut usize) -> Result<Box<dyn Instruction>, InstructionDecodeError> {
+pub fn build<T: 'static + Instruction>(instructions: &Program, program_counter: &mut usize) -> Result<Box<dyn Instruction>, InstructionDecodeError> {
     Ok(
         Box::new(
             T::new(
@@ -107,7 +107,7 @@ pub fn build<T: 'static + Instruction>(instructions: &mut Vec<u8>, program_count
     )
 }
 
-pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &mut Vec<u8>, program_counter: &mut usize) -> Result<OperandValues, InstructionDecodeError> {
+pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &Program, program_counter: &mut usize) -> Result<OperandValues, InstructionDecodeError> {
     let mut operand_values: OperandValues = [OperandValue::None, OperandValue::None, OperandValue::None];
 
     // @todo: I don't think I need this exhaustive match. There is no reason this can't have arbitrary lengths and number of operands
@@ -128,7 +128,7 @@ pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &mut Vec<
                 // @todo: This should really be u24
                 let a = (instructions[*program_counter] as FourWords) << 16;
                 let b = (instructions[*program_counter + 1] as FourWords) << 8;
-                let c = (instructions[*program_counter + 2] as FourWords);
+                let c = instructions[*program_counter + 2] as FourWords;
 
                 let value = (a | b | c) as u32;
 
