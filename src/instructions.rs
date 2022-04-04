@@ -12,6 +12,7 @@ mod data;
 mod math;
 mod program;
 
+// @todo: I don't think this actually needs to be limited to 3. I think this can just be a vector with as many operands as wanted
 type OperandMap = [usize; 3];
 
 type OperandValues = [OperandValue; 3];
@@ -20,7 +21,7 @@ type OperandValues = [OperandValue; 3];
 pub enum OperandValue {
     u8(Word),
     u16(DoubleWord),
-    // u32(FourWords),
+    u32(FourWords),
     None,
 }
 
@@ -47,22 +48,20 @@ impl OperandValue {
         match self {
             OperandValue::u8(value) => *value as usize,
             OperandValue::u16(value) => *value as usize,
+            OperandValue::u32(value) => *value as usize,
             OperandValue::None => panic!("Did not receive a destination register")
         }
     }
 
     fn as_program_index(&self) -> ProgramIndex {
-        match self {
-            OperandValue::u8(value) => *value as usize,
-            OperandValue::u16(value) => *value as usize,
-            OperandValue::None => panic!("Did not receive a destination register")
-        }
+        self.as_register_id() as ProgramIndex
     }
 
     fn as_constant_value(&self) -> RegisterValue {
         match self {
             OperandValue::u8(value) => *value as RegisterValue,
             OperandValue::u16(value) => *value as RegisterValue,
+            OperandValue::u32(value) => *value as RegisterValue,
             OperandValue::None => panic!("Did not receive a destination register")
         }
     }
@@ -111,6 +110,7 @@ pub fn build<T: 'static + Instruction>(instructions: &mut Vec<u8>, program_count
 pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &mut Vec<u8>, program_counter: &mut usize) -> Result<OperandValues, InstructionDecodeError> {
     let mut operand_values: OperandValues = [OperandValue::None, OperandValue::None, OperandValue::None];
 
+    // @todo: I don't think I need this exhaustive match. There is no reason this can't have arbitrary lengths and number of operands
     for (index, bytes) in operand_map.iter().enumerate() {
         match bytes {
             0 => {
@@ -124,16 +124,18 @@ pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &mut Vec<
                 operand_values[index] = OperandValue::u16(((instructions[*program_counter] as DoubleWord) << 8) | instructions[*program_counter + 1] as u16);
                 *program_counter += 2;
             }
-            // 3 => {
-            //     // @todo: This should really be u24
-            //     operand_values[index] = OperandValue::u32(
-            //         ((instructions[*program_counter] as FourWords) << 8)
-            //         | ((instructions[*program_counter + 1] as FourWords) << 8)
-            //         | instructions[*program_counter + 2] as u32
-            //     );
-            //
-            //     *program_counter += 3;
-            // }
+            3 => {
+                // @todo: This should really be u24
+                let a = (instructions[*program_counter] as FourWords) << 16;
+                let b = (instructions[*program_counter + 1] as FourWords) << 8;
+                let c = (instructions[*program_counter + 2] as FourWords);
+
+                let value = (a | b | c) as u32;
+
+                operand_values[index] = OperandValue::u32(value);
+
+                *program_counter += 3;
+            }
             _ => {
                 return Err(InstructionDecodeError::InvalidValueSize);
             }
@@ -239,6 +241,20 @@ mod tests {
         ];
 
         test_consume_and_parse_values(operand_map, &mut instructions, &expected, 2);
+    }
+
+    #[test]
+    fn consume_and_parse_values_a_single_24_bit() {
+        let operand_map = OperandMap::from([3, 0, 0]);
+        let mut instructions: Vec<u8> = vec![1, 1, 1];
+
+        let expected = [
+            OperandValue::u32(65793), // 00 01 01 01
+            OperandValue::None,
+            OperandValue::None
+        ];
+
+        test_consume_and_parse_values(operand_map, &mut instructions, &expected, 3);
     }
 
     fn test_consume_and_parse_values(operand_map: [usize; 3], mut instructions: &mut Vec<u8>, expected: &[OperandValue; 3], expected_counter: usize) {
