@@ -1,7 +1,8 @@
 use std::fmt::Error;
 
+use crate::instructions;
 use crate::instructions::{Instruction, OperandMap, OperandValues};
-use crate::vm::{ExecutionResult, VM};
+use crate::vm::{ExecutionResult, RegisterValue, VM};
 
 pub struct Add {
     operand_values: OperandValues,
@@ -51,15 +52,10 @@ impl Instruction for Add {
     }
 
     fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
-        let destination = self.operand_values[0].as_register_id();
+        let callback = |left: RegisterValue, right: RegisterValue| { (left + right) as RegisterValue };
 
-        let left = self.get_register_value_for_operand(1, vm).unwrap();
-        let right = self.get_register_value_for_operand(2, vm).unwrap();
-
-        let value = left + right;
-
-        vm.set_register(destination, value).unwrap();
-        Ok(ExecutionResult::Value(value))
+        let result = instructions::basic_register_execution(self, vm, callback);
+        Ok(ExecutionResult::Value(result))
     }
 }
 
@@ -112,15 +108,10 @@ impl Instruction for Subtract {
     }
 
     fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
-        let destination = self.operand_values[0].as_register_id();
+        let callback = |left: RegisterValue, right: RegisterValue| { (left - right) as RegisterValue };
 
-        let left = self.get_register_value_for_operand(1, vm).unwrap();
-        let right = self.get_register_value_for_operand(2, vm).unwrap();
-
-        let value = left - right;
-
-        vm.set_register(destination, value).unwrap();
-        Ok(ExecutionResult::Value(value))
+        let result = instructions::basic_register_execution(self, vm, callback);
+        Ok(ExecutionResult::Value(result))
     }
 }
 
@@ -173,15 +164,10 @@ impl Instruction for Multiply {
     }
 
     fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
-        let destination = self.operand_values[0].as_register_id();
+        let callback = |left: RegisterValue, right: RegisterValue| { (left * right) as RegisterValue };
 
-        let left = self.get_register_value_for_operand(1, vm).unwrap();
-        let right = self.get_register_value_for_operand(2, vm).unwrap();
-
-        let value = left * right;
-
-        vm.set_register(destination, value).unwrap();
-        Ok(ExecutionResult::Value(value))
+        let result = instructions::basic_register_execution(self, vm, callback);
+        Ok(ExecutionResult::Value(result))
     }
 }
 

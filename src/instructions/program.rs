@@ -1,7 +1,8 @@
 use std::fmt::Error;
 
 use crate::instructions::{Instruction, OperandMap, OperandValues};
-use crate::vm::{ExecutionResult, VM};
+use crate::instructions;
+use crate::vm::{ExecutionResult, RegisterId, VM};
 
 pub struct Jump {
     operand_values: OperandValues,
@@ -165,10 +166,70 @@ impl Instruction for JumpBackward {
     }
 }
 
+
+pub struct JumpEqual {
+    operand_values: OperandValues,
+}
+
+impl JumpEqual {
+    pub const OPCODE: u8 = 15;
+}
+
+impl Instruction for JumpEqual {
+    fn new(operand_values: OperandValues) -> Self {
+        JumpEqual { operand_values }
+    }
+
+    fn name(&self) -> String {
+        "JumpEqual".to_string()
+    }
+
+    fn help(&self) -> String {
+        "Jumps to absolute if two values are equal".to_string()
+    }
+
+    fn signature(&self) -> String {
+        "JMPE $JD $A $B".to_string()
+    }
+
+    fn identifier(&self) -> String {
+        "JMPE".to_string()
+    }
+
+    fn opcode(&self) -> u8 {
+        JumpEqual::OPCODE
+    }
+
+    fn operand_map() -> OperandMap {
+        OperandMap::from([1, 1, 1])
+    }
+
+    fn operand_values(&self) -> &OperandValues {
+        &self.operand_values
+    }
+
+    fn set_operand_values(&mut self, operand_values: OperandValues) {
+        self.operand_values = operand_values;
+    }
+
+    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+        let destination = self.get_register_value_for_operand(0, vm).unwrap();
+        let left = self.get_register_value_for_operand(1, vm).unwrap();
+        let right = self.get_register_value_for_operand(2, vm).unwrap();
+
+        if left == right {
+            vm.set_program_counter(destination as RegisterId);
+            return Ok(ExecutionResult::Jumped(vm.program_counter()));
+        }
+
+        Ok(ExecutionResult::NoAction)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::instructions::data::Load;
-    use crate::instructions::program::{Jump, JumpBackward, JumpForward};
+    use crate::instructions::program::{Jump, JumpBackward, JumpEqual, JumpForward};
     use crate::instructions::system::Halt;
     use crate::vm::{Program, VM};
 
@@ -266,5 +327,73 @@ mod tests {
 
         // And check on the counter itself
         assert_eq!(5, vm.program_counter());
+    }
+
+    #[test]
+    fn test_jump_if_equal() {
+        let program = Program::from([
+            // A bunch of random load instructions
+            Load::OPCODE, 0, 0, 100,
+            Load::OPCODE, 1, 0, 100,
+            JumpEqual::OPCODE, 30, 29, 28,
+            Load::OPCODE, 2, 0, 100,
+            Load::OPCODE, 3, 0, 100,
+            Load::OPCODE, 4, 0, 100,
+            Load::OPCODE, 5, 0, 100,
+        ]);
+
+        let mut vm = VM::new();
+        vm.set_register(30, 24);
+        vm.set_register(29, 200);
+        vm.set_register(28, 200);
+
+        vm.run(program);
+
+        // Should set these
+        assert_eq!(100, vm.register(0).unwrap());
+        assert_eq!(100, vm.register(1).unwrap());
+
+        // Should skip these
+        assert_eq!(0, vm.register(2).unwrap());
+        assert_eq!(0, vm.register(3).unwrap());
+        assert_eq!(0, vm.register(4).unwrap());
+
+        // And hit this one at the end
+        assert_eq!(100, vm.register(5).unwrap());
+
+        // And check on the counter itself
+        assert_eq!(28, vm.program_counter());
+    }
+
+    #[test]
+    fn test_dont_jump_if_not_equal() {
+        let program = Program::from([
+            // A bunch of random load instructions
+            Load::OPCODE, 0, 0, 100,
+            Load::OPCODE, 1, 0, 100,
+            JumpEqual::OPCODE, 30, 29, 28,
+            Load::OPCODE, 2, 0, 100,
+            Load::OPCODE, 3, 0, 100,
+            Load::OPCODE, 4, 0, 100,
+            Load::OPCODE, 5, 0, 100,
+        ]);
+
+        let mut vm = VM::new();
+        vm.set_register(30, 24);
+        vm.set_register(29, 300);
+        vm.set_register(28, 200);
+
+        vm.run(program);
+
+        // Should set these
+        assert_eq!(100, vm.register(0).unwrap());
+        assert_eq!(100, vm.register(1).unwrap());
+        assert_eq!(100, vm.register(2).unwrap());
+        assert_eq!(100, vm.register(3).unwrap());
+        assert_eq!(100, vm.register(4).unwrap());
+        assert_eq!(100, vm.register(5).unwrap());
+
+        // And check on the counter itself
+        assert_eq!(28, vm.program_counter());
     }
 }

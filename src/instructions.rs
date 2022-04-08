@@ -1,8 +1,9 @@
 use std::fmt::Error;
 
+use crate::instructions::compare::{Equal, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, NotEqual};
 use crate::instructions::data::Load;
 use crate::instructions::math::{Add, Divide, Multiply, Subtract};
-use crate::instructions::program::{Jump, JumpBackward, JumpForward};
+use crate::instructions::program::{Jump, JumpBackward, JumpEqual, JumpForward};
 use crate::instructions::system::Halt;
 use crate::vm::{DoubleWord, ExecutionResult, FourWords, Program, ProgramIndex, RegisterId, RegisterValue, VM, Word};
 
@@ -10,6 +11,7 @@ mod system;
 mod data;
 mod math;
 mod program;
+mod compare;
 
 // @todo: I don't think this actually needs to be limited to 3. I think this can just be a vector with as many operands as wanted
 type OperandMap = [usize; 3];
@@ -79,13 +81,23 @@ pub fn decode_next_instruction(instructions: &Program, program_counter: &mut usi
     match opcode {
         Halt::OPCODE => build::<Halt>(instructions, program_counter),
         Load::OPCODE => build::<Load>(instructions, program_counter),
+
         Add::OPCODE => build::<Add>(instructions, program_counter),
         Subtract::OPCODE => build::<Subtract>(instructions, program_counter),
         Multiply::OPCODE => build::<Multiply>(instructions, program_counter),
         Divide::OPCODE => build::<Divide>(instructions, program_counter),
+
         Jump::OPCODE => build::<Jump>(instructions, program_counter),
         JumpForward::OPCODE => build::<JumpForward>(instructions, program_counter),
         JumpBackward::OPCODE => build::<JumpBackward>(instructions, program_counter),
+        JumpEqual::OPCODE => build::<JumpEqual>(instructions, program_counter),
+
+        Equal::OPCODE => build::<Equal>(instructions, program_counter),
+        NotEqual::OPCODE => build::<NotEqual>(instructions, program_counter),
+        GreaterThan::OPCODE => build::<GreaterThan>(instructions, program_counter),
+        LessThan::OPCODE => build::<LessThan>(instructions, program_counter),
+        GreaterThanOrEqual::OPCODE => build::<GreaterThanOrEqual>(instructions, program_counter),
+        LessThanOrEqual::OPCODE => build::<LessThanOrEqual>(instructions, program_counter),
 
         _ => {
             return Err(InstructionDecodeError::IllegalOpcode);
@@ -146,6 +158,18 @@ pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &Program,
     Ok(operand_values)
 }
 
+fn basic_register_execution<I: Instruction, F: Fn(RegisterValue, RegisterValue) -> RegisterValue>(instruction: &I, vm: &mut VM, callback: F) -> RegisterValue {
+    let destination = instruction.operand_values()[0].as_register_id();
+
+    let left = instruction.get_register_value_for_operand(1, vm).unwrap();
+    let right = instruction.get_register_value_for_operand(2, vm).unwrap();
+
+    let result = callback(left, right);
+
+    vm.set_register(destination, result as RegisterValue).unwrap();
+    result
+}
+
 pub trait Instruction {
     // Also requires a `pub const OPCODE: u8`
     fn new(operand_values: OperandValues) -> Self where Self: Sized;
@@ -169,6 +193,7 @@ pub trait Instruction {
         vm.register(register)
     }
 }
+
 
 #[cfg(test)]
 mod tests {

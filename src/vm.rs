@@ -14,8 +14,10 @@ pub type FourWords = u32; // For when a register value is 2 slots
 pub enum ExecutionResult {
     // @todo: Decide on SUCCESSFUL Execution Results (and make an Execution Failure)
     Halted,
+    NoAction,
     Value(RegisterValue),
     Jumped(ProgramIndex),
+    Equality(bool),
 }
 
 pub struct VM {
@@ -53,6 +55,8 @@ impl VM {
                 Ok(ExecutionResult::Value(value)) => println!("{value}"),
                 Ok(ExecutionResult::Halted) => println!("Halting"),
                 Ok(ExecutionResult::Jumped(index)) => println!("Jumped to {index}"),
+                Ok(ExecutionResult::Equality(flag)) => println!("Jumped to {flag}"),
+                Ok(ExecutionResult::NoAction) => println!("No Action"),
                 Err(_) => panic!("Error")
             }
         }
