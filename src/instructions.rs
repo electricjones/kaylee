@@ -5,7 +5,7 @@ use crate::instructions::data::Load;
 use crate::instructions::math::{Add, Divide, Multiply, Subtract};
 use crate::instructions::program::{Jump, JumpBackward, JumpEqual, JumpForward};
 use crate::instructions::system::Halt;
-use crate::vm::{DoubleWord, ExecutionResult, FourWords, Program, ProgramIndex, RegisterId, RegisterValue, VM, Word};
+use crate::vm::{Byte, ExecutionResult, HalfWord, Kaylee, Program, ProgramIndex, RegisterId, RegisterValue, Word};
 
 mod system;
 mod data;
@@ -19,25 +19,25 @@ type OperandValues = [OperandValue; 3];
 
 #[derive(PartialOrd, PartialEq, Debug)]
 pub enum OperandValue {
-    u8(Word),
-    u16(DoubleWord),
-    u32(FourWords),
+    Byte(Byte),
+    HalfWord(HalfWord),
+    Word(Word),
     None,
 }
 
-impl TryFrom<Word> for OperandValue {
+impl TryFrom<Byte> for OperandValue {
     type Error = ();
 
-    fn try_from(value: Word) -> Result<Self, Self::Error> {
-        Ok(OperandValue::u8(value))
+    fn try_from(value: Byte) -> Result<Self, Self::Error> {
+        Ok(OperandValue::Byte(value))
     }
 }
 
-impl TryFrom<DoubleWord> for OperandValue {
+impl TryFrom<HalfWord> for OperandValue {
     type Error = ();
 
-    fn try_from(value: DoubleWord) -> Result<Self, Self::Error> {
-        Ok(OperandValue::u16(value))
+    fn try_from(value: HalfWord) -> Result<Self, Self::Error> {
+        Ok(OperandValue::HalfWord(value))
     }
 }
 
@@ -46,9 +46,9 @@ impl OperandValue {
     // @todo: There is certainly a more idiomatic way
     fn as_register_id(&self) -> RegisterId {
         match self {
-            OperandValue::u8(value) => *value as usize,
-            OperandValue::u16(value) => *value as usize,
-            OperandValue::u32(value) => *value as usize,
+            OperandValue::Byte(value) => *value as usize,
+            OperandValue::HalfWord(value) => *value as usize,
+            OperandValue::Word(value) => *value as usize,
             OperandValue::None => panic!("Did not receive a destination register")
         }
     }
@@ -59,18 +59,18 @@ impl OperandValue {
 
     fn as_constant_value(&self) -> RegisterValue {
         match self {
-            OperandValue::u8(value) => *value as RegisterValue,
-            OperandValue::u16(value) => *value as RegisterValue,
-            OperandValue::u32(value) => *value as RegisterValue,
+            OperandValue::Byte(value) => *value as RegisterValue,
+            OperandValue::HalfWord(value) => *value as RegisterValue,
+            OperandValue::Word(value) => *value as RegisterValue,
             OperandValue::None => panic!("Did not receive a destination register")
         }
     }
 
     pub(crate) fn as_string(&self) -> String {
         match self {
-            OperandValue::u8(value) => value.to_string(),
-            OperandValue::u16(value) => value.to_string(),
-            OperandValue::u32(value) => value.to_string(),
+            OperandValue::Byte(value) => value.to_string(),
+            OperandValue::HalfWord(value) => value.to_string(),
+            OperandValue::Word(value) => value.to_string(),
             OperandValue::None => panic!("Did not receive a destination register")
         }
     }
@@ -88,7 +88,7 @@ pub fn decode_next_instruction(instructions: &Program, program_counter: &mut usi
         return None;
     }
 
-    let opcode: Word = instructions[*program_counter];
+    let opcode: Byte = instructions[*program_counter];
     *program_counter += 1;
 
     Some(match opcode {
@@ -142,22 +142,22 @@ pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &Program,
                 operand_values[index] = OperandValue::None;
             }
             1 => {
-                operand_values[index] = OperandValue::u8(instructions[*program_counter]);
+                operand_values[index] = OperandValue::Byte(instructions[*program_counter]);
                 *program_counter += 1;
             }
             2 => {
-                operand_values[index] = OperandValue::u16(((instructions[*program_counter] as DoubleWord) << 8) | instructions[*program_counter + 1] as u16);
+                operand_values[index] = OperandValue::HalfWord(((instructions[*program_counter] as HalfWord) << 8) | instructions[*program_counter + 1] as u16);
                 *program_counter += 2;
             }
             3 => {
                 // @todo: This should really be u24
-                let a = (instructions[*program_counter] as FourWords) << 16;
-                let b = (instructions[*program_counter + 1] as FourWords) << 8;
-                let c = instructions[*program_counter + 2] as FourWords;
+                let a = (instructions[*program_counter] as Word) << 16;
+                let b = (instructions[*program_counter + 1] as Word) << 8;
+                let c = instructions[*program_counter + 2] as Word;
 
                 let value = (a | b | c) as u32;
 
-                operand_values[index] = OperandValue::u32(value);
+                operand_values[index] = OperandValue::Word(value);
 
                 *program_counter += 3;
             }
@@ -170,7 +170,7 @@ pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &Program,
     Ok(operand_values)
 }
 
-fn basic_register_execution<I: Instruction, F: Fn(RegisterValue, RegisterValue) -> RegisterValue>(instruction: &I, vm: &mut VM, callback: F) -> RegisterValue {
+fn basic_register_execution<I: Instruction, F: Fn(RegisterValue, RegisterValue) -> RegisterValue>(instruction: &I, vm: &mut Kaylee, callback: F) -> RegisterValue {
     let destination = instruction.operand_values()[0].as_register_id();
 
     let left = instruction.get_register_value_for_operand(1, vm).unwrap();
@@ -193,7 +193,7 @@ pub trait Instruction {
     // @todo: `signature() -> ["DIV", ("$", "D"), ("#", "NUMBER")]`
     fn signature(&self) -> String;
     fn identifier(&self) -> String;
-    fn opcode(&self) -> Word;
+    fn opcode(&self) -> Byte;
     fn opcode_as_hex(&self) -> String {
         format!("{:#X}", self.opcode())
     }
@@ -202,7 +202,7 @@ pub trait Instruction {
     fn operand_values(&self) -> &OperandValues;
     fn set_operand_values(&mut self, operand_values: OperandValues);
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error>;
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error>;
 
     fn display(&self) -> String {
         let signature = self.signature();
@@ -226,7 +226,7 @@ pub trait Instruction {
         output
     }
 
-    fn get_register_value_for_operand(&self, operand_value_index: usize, vm: &mut VM) -> Result<RegisterValue, ()> {
+    fn get_register_value_for_operand(&self, operand_value_index: usize, vm: &mut Kaylee) -> Result<RegisterValue, ()> {
         let register = self.operand_values()[operand_value_index].as_register_id();
         vm.register(register)
     }
@@ -257,9 +257,9 @@ mod tests {
         let mut instructions: Vec<u8> = vec![30, 40, 50];
 
         let expected = [
-            OperandValue::u8(30),
-            OperandValue::u8(40),
-            OperandValue::u8(50),
+            OperandValue::Byte(30),
+            OperandValue::Byte(40),
+            OperandValue::Byte(50),
         ];
 
         test_consume_and_parse_values(operand_map, &mut instructions, &expected, 3);
@@ -271,8 +271,8 @@ mod tests {
         let mut instructions: Vec<u8> = vec![1, 244, 100];
 
         let expected = [
-            OperandValue::u16(500),
-            OperandValue::u8(100),
+            OperandValue::HalfWord(500),
+            OperandValue::Byte(100),
             OperandValue::None
         ];
 
@@ -285,7 +285,7 @@ mod tests {
         let mut instructions: Vec<u8> = vec![70];
 
         let expected = [
-            OperandValue::u8(70),
+            OperandValue::Byte(70),
             OperandValue::None,
             OperandValue::None
         ];
@@ -299,8 +299,8 @@ mod tests {
         let mut instructions: Vec<u8> = vec![70, 80];
 
         let expected = [
-            OperandValue::u8(70),
-            OperandValue::u8(80),
+            OperandValue::Byte(70),
+            OperandValue::Byte(80),
             OperandValue::None
         ];
 
@@ -313,7 +313,7 @@ mod tests {
         let mut instructions: Vec<u8> = vec![1, 1, 1];
 
         let expected = [
-            OperandValue::u32(65793), // 00 01 01 01
+            OperandValue::Word(65793), // 00 01 01 01
             OperandValue::None,
             OperandValue::None
         ];

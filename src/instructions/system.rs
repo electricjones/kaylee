@@ -1,7 +1,7 @@
 use std::fmt::Error;
 
 use crate::instructions::{Instruction, OperandMap, OperandValues};
-use crate::vm::{ExecutionResult, VM};
+use crate::vm::{ExecutionResult, Kaylee};
 
 pub struct Halt {
     operand_values: OperandValues,
@@ -48,7 +48,7 @@ impl Instruction for Halt {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         vm.halt();
         Ok(ExecutionResult::Halted)
     }

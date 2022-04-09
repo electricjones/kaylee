@@ -1,7 +1,7 @@
 use std::fmt::Error;
 
 use crate::instructions::{Instruction, OperandMap, OperandValues};
-use crate::vm::{ExecutionResult, VM};
+use crate::vm::{ExecutionResult, Kaylee};
 
 pub struct Load {
     operand_values: OperandValues,
@@ -48,7 +48,7 @@ impl Instruction for Load {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let destination = self.operand_values[0].as_register_id();
         let value = self.operand_values[1].as_constant_value();
 
@@ -59,8 +59,8 @@ impl Instruction for Load {
 
 #[cfg(test)]
 mod tests {
+    use crate::vm::Kaylee;
     use crate::vm::Program;
-    use crate::vm::VM;
 
     #[test]
     fn test_load() {
@@ -69,7 +69,7 @@ mod tests {
             1, 30, 0, 12,  // LOAD $6 #12
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.run(program);
 
         assert_eq!(500, vm.register(4).unwrap());

@@ -2,7 +2,7 @@ use std::fmt::Error;
 
 use crate::instructions;
 use crate::instructions::{Instruction, OperandMap, OperandValues};
-use crate::vm::{ExecutionResult, RegisterValue, VM};
+use crate::vm::{ExecutionResult, Kaylee, RegisterValue};
 
 pub struct Equal {
     operand_values: OperandValues,
@@ -51,7 +51,7 @@ impl Instruction for Equal {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left == right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -111,7 +111,7 @@ impl Instruction for NotEqual {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left != right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -170,7 +170,7 @@ impl Instruction for GreaterThan {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left > right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -229,7 +229,7 @@ impl Instruction for LessThan {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left < right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -288,7 +288,7 @@ impl Instruction for GreaterThanOrEqual {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left >= right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -347,7 +347,7 @@ impl Instruction for LessThanOrEqual {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left <= right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -362,8 +362,8 @@ impl Instruction for LessThanOrEqual {
 #[cfg(test)]
 mod tests {
     use crate::instructions::compare::{Equal, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, NotEqual};
+    use crate::vm::Kaylee;
     use crate::vm::Program;
-    use crate::vm::VM;
 
     #[test]
     fn test_equal() {
@@ -372,7 +372,7 @@ mod tests {
             Equal::OPCODE, 31, 3, 4, // Fail
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(1, 100).unwrap();
         vm.set_register(2, 100).unwrap();
         vm.set_register(3, 200).unwrap();
@@ -391,7 +391,7 @@ mod tests {
             NotEqual::OPCODE, 31, 3, 4, // Fail
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(1, 100).unwrap();
         vm.set_register(2, 200).unwrap();
         vm.set_register(3, 300).unwrap();
@@ -410,7 +410,7 @@ mod tests {
             GreaterThan::OPCODE, 31, 3, 4, // Fail
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(1, 300).unwrap();
         vm.set_register(2, 200).unwrap();
         vm.set_register(3, 200).unwrap();
@@ -429,7 +429,7 @@ mod tests {
             LessThan::OPCODE, 31, 3, 4, // Fail
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(1, 100).unwrap();
         vm.set_register(2, 200).unwrap();
         vm.set_register(3, 400).unwrap();
@@ -449,7 +449,7 @@ mod tests {
             GreaterThanOrEqual::OPCODE, 30, 5, 6, // Fail
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(1, 200).unwrap();
         vm.set_register(2, 100).unwrap();
 
@@ -474,7 +474,7 @@ mod tests {
             LessThanOrEqual::OPCODE, 30, 5, 6, // Fail
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(1, 100).unwrap();
         vm.set_register(2, 200).unwrap();
 

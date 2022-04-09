@@ -2,7 +2,7 @@ use std::fmt::Error;
 
 use crate::instructions;
 use crate::instructions::{Instruction, OperandMap, OperandValues};
-use crate::vm::{ExecutionResult, RegisterValue, VM};
+use crate::vm::{ExecutionResult, Kaylee, RegisterValue};
 
 pub struct Add {
     operand_values: OperandValues,
@@ -51,7 +51,7 @@ impl Instruction for Add {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left + right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -107,7 +107,7 @@ impl Instruction for Subtract {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left - right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -163,7 +163,7 @@ impl Instruction for Multiply {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left * right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -219,7 +219,7 @@ impl Instruction for Divide {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let destination = self.operand_values[0].as_register_id();
 
         let left = self.get_register_value_for_operand(1, vm).unwrap();
@@ -238,8 +238,8 @@ impl Instruction for Divide {
 #[cfg(test)]
 mod tests {
     use crate::instructions::math::{Add, Divide, Multiply, Subtract};
+    use crate::vm::Kaylee;
     use crate::vm::Program;
-    use crate::vm::VM;
 
     #[test]
     fn test_add() {
@@ -249,7 +249,7 @@ mod tests {
             2, 31, 29, 30,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 12).unwrap();
         vm.set_register(1, 10).unwrap();
         vm.set_register(2, 500).unwrap();
@@ -274,7 +274,7 @@ mod tests {
             Subtract::OPCODE, 31, 29, 30,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 222).unwrap();
         vm.set_register(1, 14).unwrap();
         vm.set_register(2, 22).unwrap();
@@ -299,7 +299,7 @@ mod tests {
             Multiply::OPCODE, 31, 29, 30,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 2).unwrap();
         vm.set_register(1, 4).unwrap();
         vm.set_register(2, 6).unwrap();
@@ -322,7 +322,7 @@ mod tests {
             Divide::OPCODE, 31, 0, 1,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 16).unwrap();
         vm.set_register(1, 2).unwrap();
 
@@ -338,7 +338,7 @@ mod tests {
             Divide::OPCODE, 31, 0, 1,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 13).unwrap();
         vm.set_register(1, 5).unwrap();
 
@@ -363,7 +363,7 @@ mod tests {
             Divide::OPCODE, 31, 28, 30,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 2).unwrap();
         vm.set_register(1, 4).unwrap();
         vm.set_register(2, 6).unwrap();

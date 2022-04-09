@@ -1,7 +1,7 @@
 use std::fmt::Error;
 
 use crate::instructions::{Instruction, OperandMap, OperandValues};
-use crate::vm::{ExecutionResult, RegisterId, VM};
+use crate::vm::{ExecutionResult, Kaylee, RegisterId};
 
 pub struct Jump {
     operand_values: OperandValues,
@@ -48,7 +48,7 @@ impl Instruction for Jump {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let destination = self.operand_values[0].as_program_index();
 
         vm.set_program_counter(destination);
@@ -101,7 +101,7 @@ impl Instruction for JumpForward {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let forward = self.operand_values[0].as_constant_value();
         let steps = (forward * 4) as usize;
 
@@ -156,7 +156,7 @@ impl Instruction for JumpBackward {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let backward = self.operand_values[0].as_constant_value();
         let steps = ((backward + 1) * 4) as usize;
 
@@ -211,7 +211,7 @@ impl Instruction for JumpEqual {
         self.operand_values = operand_values;
     }
 
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let destination = self.get_register_value_for_operand(0, vm).unwrap();
         let left = self.get_register_value_for_operand(1, vm).unwrap();
         let right = self.get_register_value_for_operand(2, vm).unwrap();
@@ -230,7 +230,7 @@ mod tests {
     use crate::instructions::data::Load;
     use crate::instructions::program::{Jump, JumpBackward, JumpEqual, JumpForward};
     use crate::instructions::system::Halt;
-    use crate::vm::{Program, VM};
+    use crate::vm::{Kaylee, Program};
 
     #[test]
     fn test_jump() {
@@ -245,7 +245,7 @@ mod tests {
             Load::OPCODE, 5, 0, 100,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.run(program);
 
         // Should set these
@@ -277,7 +277,7 @@ mod tests {
             Load::OPCODE, 5, 0, 100,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.run(program);
 
         // Should set these
@@ -313,7 +313,7 @@ mod tests {
             Load::OPCODE, 5, 0, 100,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_program_counter(12);
         vm.run(program);
 
@@ -341,7 +341,7 @@ mod tests {
             Load::OPCODE, 5, 0, 100,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(30, 24).unwrap();
         vm.set_register(29, 200).unwrap();
         vm.set_register(28, 200).unwrap();
@@ -377,7 +377,7 @@ mod tests {
             Load::OPCODE, 5, 0, 100,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(30, 24).unwrap();
         vm.set_register(29, 300).unwrap();
         vm.set_register(28, 200).unwrap();
