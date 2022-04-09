@@ -48,19 +48,19 @@ impl Repl {
                         println!("{command}");
                     }
                 }
-                // ".program" => {
-                //     println!("Listing entire program instructions");
-                //     let mut pc: usize = 0;
-                //
-                //     while let Some(result) = decode_next_instruction(&program, &mut pc) {
-                //         match result {
-                //             Ok(instruction) => println!("{}", instruction.display()),
-                //             Err(_error) => panic!("received an error")
-                //         };
-                //     }
-                //
-                //     println!("End of instructions");
-                // }
+                ".program" => {
+                    println!("Listing entire program instructions");
+                    let mut pc: usize = 0;
+
+                    while let Some(result) = decode_next_instruction(&program, &mut pc) {
+                        match result {
+                            Ok(instruction) => println!("{}", instruction.display()),
+                            Err(_error) => panic!("received an error")
+                        };
+                    }
+
+                    println!("End of instructions");
+                }
                 ".registers" => {
                     println!("Listing all registers and contents");
                     println!("{:#?}", self.vm.all_registers());

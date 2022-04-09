@@ -107,6 +107,27 @@ pub fn consume_and_parse_values(signature: InstructionSignature, instructions: &
     Ok(operand_values)
 }
 
+pub fn display_instruction_with_values<T: 'static + Instruction>(instruction: &T) -> String {
+    let mut output = String::new();
+    output.push_str(T::signature().identifier.as_str());
+
+    for (index, operand_type) in T::signature().operands.iter().enumerate() {
+        match operand_type {
+            OperandType::None => {}
+            OperandType::RegisterId => {
+                let value = instruction.operand_value(index).unwrap().as_constant_value();
+                output.push_str(format!(" ${value}").as_str())
+            }
+            _ => {
+                let value = instruction.operand_value(index).unwrap().as_constant_value();
+                output.push_str(format!(" #{value}").as_str())
+            }
+        }
+    }
+
+    output
+}
+
 fn basic_register_execution<I: Instruction, F: Fn(RegisterValue, RegisterValue) -> RegisterValue>(instruction: &I, vm: &mut Kaylee, callback: F) -> RegisterValue {
     let destination = instruction.operand_values()[0].as_register_id();
 
@@ -126,8 +147,6 @@ pub enum OperandType {
     ConstantHalfWord,
     ConstantWord,
 }
-
-type OperandMap = [usize; 3];
 
 type OperandValues = [OperandValue; 3];
 
@@ -203,41 +222,24 @@ pub struct InstructionDocumentation {
 pub trait Instruction {
     // Also requires a `pub const OPCODE: u8`
 
+    // @todo: The only thing (other than the OPCODE constant) that is actually required w/o macro
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error>;
+
     // @todo: These can be derived with a macro, eventually
     fn new(operand_values: OperandValues) -> Self where Self: Sized;
     fn signature() -> InstructionSignature where Self: Sized;
     fn documentation() -> InstructionDocumentation where Self: Sized;
 
+    // @Todo: macro eligible
+    fn display(&self) -> String;
 
     // fn raw(&self) -> [u8; 4];
     // fn opcode_as_hex(&self) -> String {
     //     format!("{:#X}", self.opcode())
     // }
+    // @todo: macro eligible
     fn operand_values(&self) -> &OperandValues;
 
-    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error>;
-
-    // fn display(&self) -> String {
-    //     let signature = self.signature();
-    //     let pieces = signature.split(" ");
-    //
-    //     let mut output = String::new();
-    //     for (key, piece) in pieces.into_iter().enumerate() {
-    //         if key == 0 {
-    //             output.push_str(piece);
-    //             continue;
-    //         }
-    //
-    //         output.push(' ');
-    //         output.push(piece.chars().nth(0).unwrap());
-    //
-    //         let value = &self.operand_values()[key - 1].as_string();
-    //
-    //         output.push_str(value.as_str());
-    //     }
-    //
-    //     output
-    // }
 
     fn operand_value(&self, index: usize) -> Result<&OperandValue, String> {
         if index > 2 {

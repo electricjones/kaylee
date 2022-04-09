@@ -1,8 +1,26 @@
 use std::fmt::Error;
 
-use crate::instructions::{Instruction, InstructionDocumentation, InstructionSignature, OperandMap, OperandType, OperandValues};
+use crate::instructions::{display_instruction_with_values, Instruction, InstructionDocumentation, InstructionSignature, OperandType, OperandValues};
 use crate::vm::{ExecutionResult, Kaylee};
 
+// #[derive(KayleeInstruction)]
+// #[Opcode(100)]
+// #[Signature("LOAD $D #[2]")]
+// #[Signature("LOAD $D $A #[1]")]
+// #[Signature("ADD $D $A $B")]
+// #[Signature("JUMP #[3]")]
+/// This would be the help documentation
+/// https://stackoverflow.com/questions/33999341/generating-documentation-in-macros
+// @todo: separate Executor from Instruction so Instruction can be derived and Executor can be implemented
+
+// pub struct Load {}
+//
+// impl Executable for Load {
+//     fn execute(&self, &vm: Kaylee) {
+//
+//     }
+// }
+//
 pub struct Load {
     operand_values: OperandValues,
 }
@@ -12,6 +30,14 @@ impl Load {
 }
 
 impl Instruction for Load {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
+        let destination = self.operand_values[0].as_register_id();
+        let value = self.operand_values[1].as_constant_value();
+
+        vm.set_register(destination, value).unwrap();
+        Ok(ExecutionResult::Value(value))
+    }
+
     fn new(operand_values: OperandValues) -> Self {
         Load { operand_values }
     }
@@ -30,16 +56,12 @@ impl Instruction for Load {
         }
     }
 
-    fn operand_values(&self) -> &OperandValues {
-        &self.operand_values
+    fn display(&self) -> String {
+        display_instruction_with_values(self)
     }
 
-    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
-        let destination = self.operand_values[0].as_register_id();
-        let value = self.operand_values[1].as_constant_value();
-
-        vm.set_register(destination, value).unwrap();
-        Ok(ExecutionResult::Value(value))
+    fn operand_values(&self) -> &OperandValues {
+        &self.operand_values
     }
 }
 
