@@ -204,7 +204,7 @@ pub trait Instruction {
 
     fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error>;
 
-    fn print(&self) -> String {
+    fn display(&self) -> String {
         let signature = self.signature();
         let pieces = signature.split(" ");
 
@@ -218,7 +218,7 @@ pub trait Instruction {
             output.push(' ');
             output.push(piece.chars().nth(0).unwrap());
 
-            let value = &self.operand_values()[key].as_string();
+            let value = &self.operand_values()[key - 1].as_string();
 
             output.push_str(value.as_str());
         }

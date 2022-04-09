@@ -25,7 +25,7 @@ impl Instruction for Load {
     }
 
     fn signature(&self) -> String {
-        "LOAD ${D} #{u16}".to_string()
+        "LOAD $D #I".to_string()
     }
 
     fn identifier(&self) -> String {

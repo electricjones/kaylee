@@ -15,6 +15,7 @@ pub type DoubleWord = u16;
 pub type FourWords = u32;
 
 pub type ProgramIndex = usize;
+
 pub type Program = Vec<u8>;
 
 pub enum ExecutionResult {
@@ -64,8 +65,8 @@ impl VM {
         }
     }
 
-    pub fn run_next(&mut self, program: Program) {
-        match decode_next_instruction(&program, &mut self.program_counter) {
+    pub fn run_next(&mut self, program: &Program) {
+        match decode_next_instruction(program, &mut self.program_counter) {
             Some(Ok(instruction)) => self.execute_instruction(instruction),
             None => println!("Execution Finished"),
             Some(Err(_error)) => panic!("received an error"),

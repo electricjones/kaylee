@@ -26,6 +26,9 @@ impl Repl {
 
     pub fn run(&mut self) {
         println!("Welcome to the Kaylee REPL");
+
+        let mut program = Program::new();
+
         loop {
             let mut buffer = String::new();
             let stdin = io::stdin();
@@ -36,8 +39,6 @@ impl Repl {
             let buffer = buffer.trim();
 
             self.command_buffer.push(buffer.to_string());
-
-            let mut program = Program::new();
 
             match buffer {
                 ".quit" => {
@@ -55,7 +56,7 @@ impl Repl {
 
                     while let Some(result) = decode_next_instruction(&program, &mut pc) {
                         match result {
-                            Ok(instruction) => instruction.print(),
+                            Ok(instruction) => println!("{}", instruction.display()),
                             Err(_error) => panic!("received an error")
                         };
                     }
@@ -71,14 +72,14 @@ impl Repl {
                     let results = parse_hex(buffer);
                     match results {
                         Ok(bytes) => {
-                            program.extend(bytes);
+                            &program.extend(bytes);
                         }
                         Err(_e) => {
                             println!("Invalid HEX string");
                         }
                     }
 
-                    self.vm.run_next(program);
+                    self.vm.run_next(&program);
                 }
             }
         }
