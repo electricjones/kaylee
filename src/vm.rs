@@ -1,18 +1,23 @@
-use crate::instructions::Instruction;
+use crate::instructions::{decode_next_instruction, Instruction};
 
 // @Todo: I don't like these names
-pub type RegisterId = usize;
 // The id used for each register, key in the vector
-pub type RegisterValue = i32;
+pub type RegisterId = usize;
+
 // The value the VM uses
-pub type Word = u8;
+pub type RegisterValue = i32;
+
 // A single Opcode or register contents, or whatever
-pub type DoubleWord = u16;
+pub type Word = u8;
+
 // For when a register value is 2 slots
-pub type FourWords = u32; // For when a register value is 2 slots
+pub type DoubleWord = u16;
+pub type FourWords = u32;
+
+pub type ProgramIndex = usize;
+pub type Program = Vec<u8>;
 
 pub enum ExecutionResult {
-    // @todo: Decide on SUCCESSFUL Execution Results (and make an Execution Failure)
     Halted,
     NoAction,
     Value(RegisterValue),
@@ -20,10 +25,14 @@ pub enum ExecutionResult {
     Equality(bool),
 }
 
+pub enum ExecutionError {
+    Unknown(String),
+}
+
 pub struct VM {
-    pub(crate) registers: [RegisterValue; VM::REGISTER_COUNT],
-    remainder: u32,
+    registers: [RegisterValue; VM::REGISTER_COUNT],
     program_counter: usize,
+    remainder: u32,
     halted: bool,
 }
 
@@ -39,37 +48,40 @@ impl VM {
         }
     }
 
-    fn next(&mut self, instructions: &Program) -> Option<Box<dyn Instruction>> {
-        if self.program_counter >= instructions.len() || self.halted {
-            return None;
-        }
-
-        Some(crate::instructions::decode_next_instruction(instructions, &mut self.program_counter).unwrap())
-    }
-
-
-    // @todo: I don't want the program to be mutable, except for the counter
+    /// This will run until one of the following conditions is met
+    /// 1. The Program reaches completes its final instruction
+    /// 2. The VM `halt` flag is set, which will complete the current instruction and then halt
     pub fn run(&mut self, program: Program) {
-        while let Some(instruction) = self.next(&program) {
-            match instruction.execute(self) {
-                Ok(ExecutionResult::Value(value)) => println!("{value}"),
-                Ok(ExecutionResult::Halted) => println!("Halting"),
-                Ok(ExecutionResult::Jumped(index)) => println!("Jumped to {index}"),
-                Ok(ExecutionResult::Equality(flag)) => println!("Jumped to {flag}"),
-                Ok(ExecutionResult::NoAction) => println!("No Action"),
-                Err(_) => panic!("Error")
+        while let Some(result) = decode_next_instruction(&program, &mut self.program_counter) {
+            match result {
+                Ok(instruction) => { self.execute_instruction(instruction) }
+                Err(_error) => { panic!("received an error") }
+            }
+
+            if self.halted {
+                break;
             }
         }
-
-        // let mut is_done = false;
-        // while !is_done {
-        //     is_done = self.execute_instruction();
-        // }
     }
 
-    // pub fn run_once(&mut self) {
-    //     self.execute_instruction();
-    // }
+    pub fn run_next(&mut self, program: Program) {
+        match decode_next_instruction(&program, &mut self.program_counter) {
+            Some(Ok(instruction)) => self.execute_instruction(instruction),
+            None => println!("Execution Finished"),
+            Some(Err(_error)) => panic!("received an error"),
+        };
+    }
+
+    fn execute_instruction(&mut self, instruction: Box<dyn Instruction>) {
+        match instruction.execute(self) {
+            Ok(ExecutionResult::Value(value)) => println!("{value}"),
+            Ok(ExecutionResult::Halted) => println!("Halting"),
+            Ok(ExecutionResult::Jumped(index)) => println!("Jumped to {index}"),
+            Ok(ExecutionResult::Equality(flag)) => println!("Jumped to {flag}"),
+            Ok(ExecutionResult::NoAction) => println!("No Action"),
+            Err(_) => panic!("Error")
+        }
+    }
 
     pub(crate) fn register(&self, register: RegisterId) -> Result<RegisterValue, ()> {
         if register > VM::REGISTER_COUNT - 1 {
@@ -92,7 +104,7 @@ impl VM {
         Ok(())
     }
 
-    pub fn halt(&mut self) {
+    pub(crate) fn halt(&mut self) {
         self.halted = true;
     }
 
@@ -109,95 +121,11 @@ impl VM {
     }
 
     pub(crate) fn set_program_counter(&mut self, index: ProgramIndex) {
-        // @todo: No program checking here since VM doesn't actually have a program
         self.program_counter = index
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
-    #[test]
-    fn program() {
-        let program = Program::from([
-            // 0,           // HALT
-            1, 4, 1, 244, // LOAD $4 #500
-            1, 6, 0, 12,  // LOAD $6 #12
-        ]);
-
-        // for instruction in program {
-        //     assert_eq!(instruction.name(), "Load".to_string());
-        // }
-
-        let mut vm = VM::new();
-        vm.run(program);
-        assert_eq!(true, true);
-    }
-
-//     #[test]
-//     fn test_jmp_opcode() {
-//         let mut test_vm = VM::new();
-//         test_vm.registers[0] = 1;
-//         test_vm.instructions = vec![6, 0, 0, 0];
-//         test_vm.run_once();
-//         assert_eq!(test_vm.counter, 1);
-//     }
-//
-//     #[test]
-//     fn test_jmpf_opcode() {
-//         let mut test_vm = VM::new();
-//         test_vm.registers[0] = 2;
-//         test_vm.instructions = vec![7, 0, 0, 0, 6, 0, 0, 0];
-//         test_vm.run_once();
-//         assert_eq!(test_vm.counter, 4);
-//     }
-//
-//     #[test]
-//     fn test_jmpb_opcode() {
-//         let mut test_vm = VM::new();
-//         test_vm.registers[0] = 2;
-//         test_vm.instructions = vec![8, 0, 0, 0, 6, 0, 0, 0];
-//         test_vm.run_once();
-//         assert_eq!(test_vm.counter, 0);
-//     }
-//
-//     #[test]
-//     fn test_eq_opcode() {
-//         let mut test_vm = VM::new();
-//         test_vm.registers[0] = 2;
-//         test_vm.registers[1] = 2;
-//         test_vm.instructions = vec![9, 2, 0, 1];
-//         test_vm.run();
-//         assert_eq!(test_vm.registers[2], 1);
-//
-//         let mut test_vm = VM::new();
-//         test_vm.registers[0] = 2;
-//         test_vm.registers[1] = 3;
-//         test_vm.instructions = vec![9, 2, 0, 1];
-//         test_vm.run();
-//         assert_eq!(test_vm.registers[2], 0);
-//     }
-//
-//     #[test]
-//     fn test_jeq_opcode() {
-//         let mut test_vm = VM::new();
-//         test_vm.registers[0] = 2;
-//         test_vm.registers[1] = 2;
-//         test_vm.registers[2] = 10;
-//         test_vm.instructions = vec![15, 2, 0, 1];
-//         test_vm.run();
-//         assert_eq!(test_vm.counter, 10);
-//
-//         let mut test_vm = VM::new();
-//         test_vm.registers[0] = 2;
-//         test_vm.registers[1] = 3;
-//         test_vm.registers[2] = 10;
-//         test_vm.instructions = vec![9, 2, 0, 1];
-//         test_vm.run();
-//         assert_eq!(test_vm.counter, 4);
-//     }
 }
-
-pub type ProgramIndex = usize;
-pub type Program = Vec<u8>;

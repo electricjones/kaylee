@@ -1,7 +1,6 @@
 use std::fmt::Error;
 
 use crate::instructions::{Instruction, OperandMap, OperandValues};
-use crate::instructions;
 use crate::vm::{ExecutionResult, RegisterId, VM};
 
 pub struct Jump {
@@ -305,7 +304,7 @@ mod tests {
             Halt::OPCODE, 0, 0, 0, // Stop
 
             Load::OPCODE, 1, 0, 100,
-            Load::OPCODE, 2, 0, 100, // Start here
+            Load::OPCODE, 2, 0, 100, // Start here (12)
             Load::OPCODE, 3, 0, 100, // Execute
 
             JumpBackward::OPCODE, 0, 0, 5, // Jump
@@ -326,7 +325,7 @@ mod tests {
         assert_eq!(0, vm.register(5).unwrap());
 
         // And check on the counter itself
-        assert_eq!(5, vm.program_counter());
+        assert_eq!(8, vm.program_counter());
     }
 
     #[test]
@@ -343,9 +342,9 @@ mod tests {
         ]);
 
         let mut vm = VM::new();
-        vm.set_register(30, 24);
-        vm.set_register(29, 200);
-        vm.set_register(28, 200);
+        vm.set_register(30, 24).unwrap();
+        vm.set_register(29, 200).unwrap();
+        vm.set_register(28, 200).unwrap();
 
         vm.run(program);
 
@@ -379,9 +378,9 @@ mod tests {
         ]);
 
         let mut vm = VM::new();
-        vm.set_register(30, 24);
-        vm.set_register(29, 300);
-        vm.set_register(28, 200);
+        vm.set_register(30, 24).unwrap();
+        vm.set_register(29, 300).unwrap();
+        vm.set_register(28, 200).unwrap();
 
         vm.run(program);
 

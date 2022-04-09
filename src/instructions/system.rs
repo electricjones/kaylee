@@ -37,7 +37,7 @@ impl Instruction for Halt {
     }
 
     fn operand_map() -> OperandMap {
-        OperandMap::from([0, 0, 0])
+        OperandMap::from([3, 0, 0])
     }
 
     fn operand_values(&self) -> &OperandValues {

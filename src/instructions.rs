@@ -13,7 +13,6 @@ mod math;
 mod program;
 mod compare;
 
-// @todo: I don't think this actually needs to be limited to 3. I think this can just be a vector with as many operands as wanted
 type OperandMap = [usize; 3];
 
 type OperandValues = [OperandValue; 3];
@@ -66,6 +65,15 @@ impl OperandValue {
             OperandValue::None => panic!("Did not receive a destination register")
         }
     }
+
+    pub(crate) fn as_string(&self) -> String {
+        match self {
+            OperandValue::u8(value) => value.to_string(),
+            OperandValue::u16(value) => value.to_string(),
+            OperandValue::u32(value) => value.to_string(),
+            OperandValue::None => panic!("Did not receive a destination register")
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -74,11 +82,16 @@ pub enum InstructionDecodeError {
     IllegalOpcode,
 }
 
-pub fn decode_next_instruction(instructions: &Program, program_counter: &mut usize) -> Result<Box<dyn Instruction>, InstructionDecodeError> {
+// @todo: does this return type need to be so complex? Probably
+pub fn decode_next_instruction(instructions: &Program, program_counter: &mut usize) -> Option<Result<Box<dyn Instruction>, InstructionDecodeError>> {
+    if *program_counter >= instructions.len() {
+        return None;
+    }
+
     let opcode: Word = instructions[*program_counter];
     *program_counter += 1;
 
-    match opcode {
+    Some(match opcode {
         Halt::OPCODE => build::<Halt>(instructions, program_counter),
         Load::OPCODE => build::<Load>(instructions, program_counter),
 
@@ -100,9 +113,9 @@ pub fn decode_next_instruction(instructions: &Program, program_counter: &mut usi
         LessThanOrEqual::OPCODE => build::<LessThanOrEqual>(instructions, program_counter),
 
         _ => {
-            return Err(InstructionDecodeError::IllegalOpcode);
+            Err(InstructionDecodeError::IllegalOpcode)
         }
-    }
+    })
 }
 
 
@@ -123,7 +136,6 @@ pub fn build<T: 'static + Instruction>(instructions: &Program, program_counter: 
 pub fn consume_and_parse_values(operand_map: OperandMap, instructions: &Program, program_counter: &mut usize) -> Result<OperandValues, InstructionDecodeError> {
     let mut operand_values: OperandValues = [OperandValue::None, OperandValue::None, OperandValue::None];
 
-    // @todo: I don't think I need this exhaustive match. There is no reason this can't have arbitrary lengths and number of operands
     for (index, bytes) in operand_map.iter().enumerate() {
         match bytes {
             0 => {
@@ -173,8 +185,12 @@ fn basic_register_execution<I: Instruction, F: Fn(RegisterValue, RegisterValue) 
 pub trait Instruction {
     // Also requires a `pub const OPCODE: u8`
     fn new(operand_values: OperandValues) -> Self where Self: Sized;
+    // fn raw(&self) -> [u8; 4];
     fn name(&self) -> String;
     fn help(&self) -> String;
+
+    // @todo: I think I can bring `signature(), operand_map()` together
+    // @todo: `signature() -> ["DIV", ("$", "D"), ("#", "NUMBER")]`
     fn signature(&self) -> String;
     fn identifier(&self) -> String;
     fn opcode(&self) -> Word;
@@ -187,6 +203,28 @@ pub trait Instruction {
     fn set_operand_values(&mut self, operand_values: OperandValues);
 
     fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error>;
+
+    fn print(&self) -> String {
+        let signature = self.signature();
+        let pieces = signature.split(" ");
+
+        let mut output = String::new();
+        for (key, piece) in pieces.into_iter().enumerate() {
+            if key == 0 {
+                output.push_str(piece);
+                continue;
+            }
+
+            output.push(' ');
+            output.push(piece.chars().nth(0).unwrap());
+
+            let value = &self.operand_values()[key].as_string();
+
+            output.push_str(value.as_str());
+        }
+
+        output
+    }
 
     fn get_register_value_for_operand(&self, operand_value_index: usize, vm: &mut VM) -> Result<RegisterValue, ()> {
         let register = self.operand_values()[operand_value_index].as_register_id();

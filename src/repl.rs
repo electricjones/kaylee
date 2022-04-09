@@ -2,6 +2,7 @@ use std;
 use std::io;
 use std::io::Write;
 
+use crate::instructions::decode_next_instruction;
 use crate::shared::parse_hex;
 // use std::num::ParseIntError;
 use crate::vm::Program;
@@ -48,13 +49,19 @@ impl Repl {
                         println!("{command}");
                     }
                 }
-                // ".program" => {
-                //     println!("Listing entire program instructions");
-                //     for instruction in program {
-                //         println!("{}", instruction.signature()); // @todo: print actual instruction with values
-                //     }
-                //     println!("End of instructions");
-                // }
+                ".program" => {
+                    println!("Listing entire program instructions");
+                    let mut pc: usize = 0;
+
+                    while let Some(result) = decode_next_instruction(&program, &mut pc) {
+                        match result {
+                            Ok(instruction) => instruction.print(),
+                            Err(_error) => panic!("received an error")
+                        };
+                    }
+
+                    println!("End of instructions");
+                }
                 ".registers" => {
                     println!("Listing all registers and contents");
                     println!("{:#?}", self.vm.all_registers());
@@ -71,8 +78,7 @@ impl Repl {
                         }
                     }
 
-                    // @todo: run_once
-                    // self.vm.run_once();
+                    self.vm.run_next(program);
                 }
             }
         }
