@@ -1,6 +1,6 @@
 use std::fmt::Error;
 
-use crate::instructions::{Instruction, OperandMap, OperandValues};
+use crate::instructions::{Instruction, InstructionDocumentation, InstructionSignature, OperandMap, OperandType, OperandValues};
 use crate::vm::{ExecutionResult, Kaylee};
 
 pub struct Load {
@@ -16,36 +16,22 @@ impl Instruction for Load {
         Load { operand_values }
     }
 
-    fn name(&self) -> String {
-        "Load".to_string()
+    fn signature() -> InstructionSignature where Self: Sized {
+        InstructionSignature {
+            identifier: "LOAD".to_string(),
+            operands: [OperandType::RegisterId, OperandType::ConstantHalfWord, OperandType::None],
+        }
     }
 
-    fn help(&self) -> String {
-        "Loads constant value into a register".to_string()
-    }
-
-    fn signature(&self) -> String {
-        "LOAD $D #I".to_string()
-    }
-
-    fn identifier(&self) -> String {
-        "LOAD".to_string()
-    }
-
-    fn opcode(&self) -> u8 {
-        Load::OPCODE
-    }
-
-    fn operand_map() -> OperandMap {
-        OperandMap::from([1, 2, 0])
+    fn documentation() -> InstructionDocumentation where Self: Sized {
+        InstructionDocumentation {
+            name: String::from("Load"),
+            help: String::from("Some help for Load"),
+        }
     }
 
     fn operand_values(&self) -> &OperandValues {
         &self.operand_values
-    }
-
-    fn set_operand_values(&mut self, operand_values: OperandValues) {
-        self.operand_values = operand_values;
     }
 
     fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
