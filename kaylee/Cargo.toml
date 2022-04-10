@@ -4,15 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[profile.dev]
-opt-level = 0
-debug = true
-
-[profile.release]
-opt-level = 3
-debug = false
-
 [dependencies]
-strum = "0.24.0"
+#strum = "0.24.0"
 anyhow = "1.0.56"
+kaylee_derive = { path = "../kaylee_derive" }
