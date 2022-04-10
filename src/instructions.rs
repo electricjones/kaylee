@@ -219,11 +219,13 @@ pub struct InstructionDocumentation {
     pub help: String,
 }
 
-pub trait Instruction {
-    // Also requires a `pub const OPCODE: u8`
-
+pub trait Executable {
     // @todo: The only thing (other than the OPCODE constant) that is actually required w/o macro
     fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error>;
+}
+
+pub trait Instruction: Executable {
+    // Also requires a `pub const OPCODE: u8`
 
     // @todo: These can be derived with a macro, eventually
     fn new(operand_values: OperandValues) -> Self where Self: Sized;

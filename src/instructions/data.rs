@@ -1,6 +1,6 @@
 use std::fmt::Error;
 
-use crate::instructions::{display_instruction_with_values, Instruction, InstructionDocumentation, InstructionSignature, OperandType, OperandValues};
+use crate::instructions::{display_instruction_with_values, Executable, Instruction, InstructionDocumentation, InstructionSignature, OperandType, OperandValues};
 use crate::vm::{ExecutionResult, Kaylee};
 
 // #[derive(KayleeInstruction)]
@@ -29,7 +29,7 @@ impl Load {
     pub const OPCODE: u8 = 1;
 }
 
-impl Instruction for Load {
+impl Executable for Load {
     fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let destination = self.operand_values[0].as_register_id();
         let value = self.operand_values[1].as_constant_value();
@@ -37,7 +37,9 @@ impl Instruction for Load {
         vm.set_register(destination, value).unwrap();
         Ok(ExecutionResult::Value(value))
     }
+}
 
+impl Instruction for Load {
     fn new(operand_values: OperandValues) -> Self {
         Load { operand_values }
     }
