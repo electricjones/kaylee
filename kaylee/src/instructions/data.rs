@@ -9,7 +9,7 @@ use crate::vm::{ExecutionResult, Kaylee};
 /// And more documentation for Load
 #[derive(Instruction)]
 #[opcode = 1]
-#[signature = "LOAD $D #[2]"]
+#[signature = "LOAD $D #2"]
 pub struct Load {
     operand_values: OperandValues,
 }
@@ -23,46 +23,6 @@ impl Executable for Load {
         Ok(ExecutionResult::Value(value))
     }
 }
-
-
-//
-// pub struct Load {
-//     operand_values: OperandValues,
-// }
-//
-// impl Load {
-//     pub const OPCODE: u8 = 1;
-// }
-//
-
-//
-// impl Instruction for Load {
-//     fn new(operand_values: OperandValues) -> Self {
-//         Load { operand_values }
-//     }
-//
-//     fn signature() -> InstructionSignature where Self: Sized {
-//         InstructionSignature {
-//             identifier: "LOAD".to_string(),
-//             operands: [OperandType::RegisterId, OperandType::ConstantHalfWord, OperandType::None],
-//         }
-//     }
-//
-//     fn documentation() -> InstructionDocumentation where Self: Sized {
-//         InstructionDocumentation {
-//             name: String::from("Load"),
-//             help: String::from("Some help for Load"),
-//         }
-//     }
-//
-//     fn display(&self) -> String {
-//         display_instruction_with_values(self)
-//     }
-//
-//     fn operand_values(&self) -> &OperandValues {
-//         &self.operand_values
-//     }
-// }
 
 #[cfg(test)]
 mod tests {

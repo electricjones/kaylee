@@ -56,7 +56,11 @@ pub fn derive_instruction(input: TokenStream) -> TokenStream {
                             let mut state = SignatureState::Identifier;
                             let mut operand_index = 0;
 
-                            for (index, char) in "LOAD $D #2 ".chars().into_iter().enumerate() {
+                            let mut me = lit.value();
+                            me.push(' ');
+
+                            let sig_lit = me.chars();
+                            for char in sig_lit {
                                 if char == ' ' {
                                     state = match state {
                                         SignatureState::Identifier => {
