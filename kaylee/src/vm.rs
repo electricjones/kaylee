@@ -57,7 +57,7 @@ impl Kaylee {
         while let Some(result) = decode_next_instruction(&program, &mut self.program_counter) {
             match result {
                 Ok(instruction) => { self.execute_instruction(instruction) }
-                Err(_error) => { panic!("received an error") }
+                Err(_error) => { panic!("Error decoding instruction") }
             }
 
             if self.halted {
