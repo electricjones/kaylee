@@ -4,22 +4,20 @@ use std::io::Write;
 
 use crate::instructions::decode_next_instruction;
 use crate::shared::parse_hex;
-// use std::num::ParseIntError;
+use crate::vm::Kaylee;
 use crate::vm::Program;
-use crate::vm::VM;
 
 /// Core structure for the REPL for the Assembler
 pub struct Repl {
     command_buffer: Vec<String>,
-    // The VM the REPL will use to execute code
-    vm: VM,
+    vm: Kaylee,
 }
 
 impl Repl {
     /// Creates and returns a new assembly REPL
     pub fn new() -> Repl {
         Repl {
-            vm: VM::new(),
+            vm: Kaylee::new(),
             command_buffer: vec![],
         }
     }
@@ -72,7 +70,7 @@ impl Repl {
                     let results = parse_hex(buffer);
                     match results {
                         Ok(bytes) => {
-                            &program.extend(bytes);
+                            let _ = &program.extend(bytes);
                         }
                         Err(_e) => {
                             println!("Invalid HEX string");

@@ -1,0 +1,15 @@
+[package]
+name = "kaylee_derive"
+version = "0.1.0"
+authors = ["Michael Wilson <mwilson@electricjones.me>"]
+description = "Macross for Kaylee"
+edition = "2021"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1"
+proc-macro2 = "1.0"
+syn = "1.0"
+

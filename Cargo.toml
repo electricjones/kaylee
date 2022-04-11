@@ -1,9 +1,8 @@
-[package]
-name = "kaylee"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = [
+    "kaylee",
+    "kaylee_derive"
+]
 
 [profile.dev]
 opt-level = 0
@@ -12,5 +11,3 @@ debug = true
 [profile.release]
 opt-level = 3
 debug = false
-
-[dependencies]

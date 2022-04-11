@@ -1,8 +1,21 @@
-# Notes
+There is no organization to this document yet. I'm just jotting things down as I play with them.
+
+# Architecture Notes
+
 - I went with the unconventional idea of variable instruction length
 - Instructions are 1-4 `u8` words
 - Register Identifiers are `usize`
 - Register Values are `i32`
+
+# Unconventional Choices
+
+- I am not following RISC or CISC religiously. I am playing with a little of both.
+- The Instructions are all structs that implement Traits instead of Enums. I tried several combinations and liked the
+  ergonomics of this approach. I wanted all the definitions to be separate and enforced. But it made the instruction
+  handling more complex than I would tolerate in a production machine, I think.
+- I went with full names for the AssemblyLanguage: `JumpForward` instead of `JUMPF`. We all have IDEs and the former is
+  easier to read.
+- I am experimenting with allowing variation in the instruction operands instead of multiple instructions. See below.
 
 ## Virtual Machine
 
@@ -11,6 +24,25 @@ TODO: Memory Allocation
 ## Byte Code and Assembly
 
 TODO: Opcode table
+
+I am experimenting with a different operand structure in the Assembly Language. It isn't implemented yet.
+`$` = Register
+`#` = Constant
+`@` = Program Point
+`&` = Memory Address
+`> <` = Memory Boundary
+
+So, instead of an instruction requiring a register OR memory address OR constant value, the same instruction can have a
+mixture.
+
+```
+COPY $D #300 // Loads a literal 300 into the destination register
+COPY $D $A   // Copies the value of register $A into the destination register
+COPY $D &100 // Copies the first four bytes from the memory at address 100 (100-103) into the destination register
+COPY $D &100..3 // Copies the first THREE bytes from the memory at address 100 (100-102) into the destination register
+COPY $D &$A     // Copies 4 bytes from memory starting at the value in A
+COPY $D &$A..2  // Copies 2 bytes from memory starting at the value in A
+```
 
 ## High Level Language
 

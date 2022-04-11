@@ -1,6 +1,5 @@
 use crate::instructions::{decode_next_instruction, Instruction};
 
-// @Todo: I don't like these names
 // The id used for each register, key in the vector
 pub type RegisterId = usize;
 
@@ -8,15 +7,16 @@ pub type RegisterId = usize;
 pub type RegisterValue = i32;
 
 // A single Opcode or register contents, or whatever
-pub type Word = u8;
+pub type Byte = u8;
 
 // For when a register value is 2 slots
-pub type DoubleWord = u16;
-pub type FourWords = u32;
+pub type HalfWord = u16;
+pub type Word = u32;
+pub type DoubleWord = u32;
 
 pub type ProgramIndex = usize;
 
-pub type Program = Vec<u8>;
+pub type Program = Vec<Byte>;
 
 pub enum ExecutionResult {
     Halted,
@@ -30,19 +30,19 @@ pub enum ExecutionError {
     Unknown(String),
 }
 
-pub struct VM {
-    registers: [RegisterValue; VM::REGISTER_COUNT],
-    program_counter: usize,
+pub struct Kaylee {
+    registers: [RegisterValue; Kaylee::REGISTER_COUNT],
+    program_counter: RegisterId,
     remainder: u32,
     halted: bool,
 }
 
-impl VM {
+impl Kaylee {
     pub const REGISTER_COUNT: usize = 32;
 
     pub fn new() -> Self {
-        VM {
-            registers: [0; VM::REGISTER_COUNT],
+        Kaylee {
+            registers: [0; Kaylee::REGISTER_COUNT],
             remainder: 0,
             program_counter: 0,
             halted: false,
@@ -56,11 +56,12 @@ impl VM {
         while let Some(result) = decode_next_instruction(&program, &mut self.program_counter) {
             match result {
                 Ok(instruction) => { self.execute_instruction(instruction) }
-                Err(_error) => { panic!("received an error") }
+                Err(_error) => { panic!("Error decoding instruction") }
             }
 
             if self.halted {
                 break;
+                // @todo: graceful shutdown of the machine/process
             }
         }
     }
@@ -85,19 +86,19 @@ impl VM {
     }
 
     pub(crate) fn register(&self, register: RegisterId) -> Result<RegisterValue, ()> {
-        if register > VM::REGISTER_COUNT - 1 {
+        if register > Kaylee::REGISTER_COUNT - 1 {
             return Err(());
         }
 
         Ok(*&self.registers[register].clone())
     }
 
-    pub(crate) fn all_registers(&self) -> [RegisterValue; VM::REGISTER_COUNT] {
+    pub(crate) fn all_registers(&self) -> [RegisterValue; Kaylee::REGISTER_COUNT] {
         *&self.registers.clone()
     }
 
     pub(crate) fn set_register(&mut self, register: RegisterId, value: RegisterValue) -> Result<(), ()> {
-        if register > VM::REGISTER_COUNT - 1 {
+        if register > Kaylee::REGISTER_COUNT - 1 {
             return Err(());
         }
 

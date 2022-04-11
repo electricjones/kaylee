@@ -1,57 +1,37 @@
+//! Instructions for arithmetic operations
+//! Opcodes reserved: 70 - 99
 use std::fmt::Error;
 
-use crate::instructions;
-use crate::instructions::{Instruction, OperandMap, OperandValues};
-use crate::vm::{ExecutionResult, RegisterValue, VM};
+use kaylee_derive::Instruction;
 
+use crate::instructions;
+use crate::instructions::{display_instruction_with_values, Executable, Instruction, InstructionDocumentation, InstructionSignature, OperandType, OperandValues};
+use crate::vm::{ExecutionResult, Kaylee, RegisterValue};
+
+/// Add: Sums the value of two registers and loads the result into a third register
+/// Operands:
+///     - 0: `$D` | 1 Byte | RegisterId | RegisterId of the destination register (0-31)
+///     - 1: `$L` | 1 Byte | RegisterId | RegisterId of the left term
+///     - 2: `$R` | 1 Byte | RegisterId | RegisterId of the right term
+///
+/// Errors/ Panics
+///     - `AssemblerError` or `ProgramPanic`: If any register is out of bounds
+///     - `RuntimeError`: If the result is too large for a destination register
+///
+/// Examples
+/// ```asm
+/// ADD $01 $10 $30 // `46 01 0A 1E` - Adds the value of register 10 to the value of register 30 ($10 + $30), and stores the result in register 1
+/// ADD $40 $01 $10 // `46 28 01 0A` - AssemblerError because 40 is not a valid register
+/// ```
+#[derive(Instruction)]
+#[opcode = 70]
+#[signature = "ADD $D $L $R"]
 pub struct Add {
     operand_values: OperandValues,
 }
 
-impl Add {
-    pub const OPCODE: u8 = 2;
-}
-
-impl Instruction for Add {
-    fn new(operand_values: OperandValues) -> Self where Self: Sized {
-        Add {
-            operand_values
-        }
-    }
-
-    fn name(&self) -> String {
-        "Add".to_string()
-    }
-
-    fn help(&self) -> String {
-        "Adds to numbers together".to_string()
-    }
-
-    fn signature(&self) -> String {
-        "ADD $D $A $B".to_string()
-    }
-
-    fn identifier(&self) -> String {
-        "ADD".to_string()
-    }
-
-    fn opcode(&self) -> u8 {
-        Add::OPCODE
-    }
-
-    fn operand_map() -> OperandMap where Self: Sized {
-        OperandMap::from([1, 1, 1])
-    }
-
-    fn operand_values(&self) -> &OperandValues {
-        &self.operand_values
-    }
-
-    fn set_operand_values(&mut self, operand_values: OperandValues) {
-        self.operand_values = operand_values;
-    }
-
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+impl Executable for Add {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left + right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -59,55 +39,30 @@ impl Instruction for Add {
     }
 }
 
-
+/// Subtract: Subtracts the values of two registers and loads the result into a third register
+/// Operands:
+///     - 0: `$D` | 1 Byte | RegisterId | RegisterId of the destination register (0-31)
+///     - 1: `$L` | 1 Byte | RegisterId | RegisterId of the left term
+///     - 2: `$R` | 1 Byte | RegisterId | RegisterId of the right term
+///
+/// Errors/ Panics
+///     - `AssemblerError` or `ProgramPanic`: If any register is out of bounds
+///     - `RuntimeError`: If the result is too large for a destination register
+///
+/// Examples
+/// ```asm
+/// SUB $01 $10 $30 // `47 01 0A 1E` - Subtracts the value of register 30 from the value of register 10 ($10 - $30), and stores the result in register 1
+/// SUB $40 $01 $10 // `47 28 01 0A` - AssemblerError because 40 is not a valid register
+/// ```
+#[derive(Instruction)]
+#[opcode = 71]
+#[signature = "SUB $D $L $R"]
 pub struct Subtract {
     operand_values: OperandValues,
 }
 
-impl Subtract {
-    pub const OPCODE: u8 = 3;
-}
-
-impl Instruction for Subtract {
-    fn new(operand_values: OperandValues) -> Self where Self: Sized {
-        Subtract {
-            operand_values
-        }
-    }
-
-    fn name(&self) -> String {
-        "Subtract".to_string()
-    }
-
-    fn help(&self) -> String {
-        "Subtracts to numbers from each other".to_string()
-    }
-
-    fn signature(&self) -> String {
-        "SUB $D $A $B".to_string()
-    }
-
-    fn identifier(&self) -> String {
-        "SUB".to_string()
-    }
-
-    fn opcode(&self) -> u8 {
-        Subtract::OPCODE
-    }
-
-    fn operand_map() -> OperandMap where Self: Sized {
-        OperandMap::from([1, 1, 1])
-    }
-
-    fn operand_values(&self) -> &OperandValues {
-        &self.operand_values
-    }
-
-    fn set_operand_values(&mut self, operand_values: OperandValues) {
-        self.operand_values = operand_values;
-    }
-
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+impl Executable for Subtract {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left - right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -115,55 +70,30 @@ impl Instruction for Subtract {
     }
 }
 
-
+/// Multiply: Multiplies the values of two registers and loads the result into a third register
+/// Operands:
+///     - 0: `$D` | 1 Byte | RegisterId | RegisterId of the destination register (0-31)
+///     - 1: `$L` | 1 Byte | RegisterId | RegisterId of the left term
+///     - 2: `$R` | 1 Byte | RegisterId | RegisterId of the right term
+///
+/// Errors/ Panics
+///     - `AssemblerError` or `ProgramPanic`: If any register is out of bounds
+///     - `RuntimeError`: If the result is too large for a destination register
+///
+/// Examples
+/// ```asm
+/// MUL $01 $10 $30 // `48 01 0A 1E` - Multiplies the value of register 10 and the value of register 30 ($10 * $30), and stores the result in register 1
+/// MUL $40 $01 $10 // `48 28 01 0A` - AssemblerError because 40 is not a valid register
+/// ```
+#[derive(Instruction)]
+#[opcode = 72]
+#[signature = "MUL $D $L $R"]
 pub struct Multiply {
     operand_values: OperandValues,
 }
 
-impl Multiply {
-    pub const OPCODE: u8 = 4;
-}
-
-impl Instruction for Multiply {
-    fn new(operand_values: OperandValues) -> Self where Self: Sized {
-        Multiply {
-            operand_values
-        }
-    }
-
-    fn name(&self) -> String {
-        "Multiply".to_string()
-    }
-
-    fn help(&self) -> String {
-        "Multiplies to numbers together".to_string()
-    }
-
-    fn signature(&self) -> String {
-        "MUL $D $A $B".to_string()
-    }
-
-    fn identifier(&self) -> String {
-        "MUL".to_string()
-    }
-
-    fn opcode(&self) -> u8 {
-        Multiply::OPCODE
-    }
-
-    fn operand_map() -> OperandMap where Self: Sized {
-        OperandMap::from([1, 1, 1])
-    }
-
-    fn operand_values(&self) -> &OperandValues {
-        &self.operand_values
-    }
-
-    fn set_operand_values(&mut self, operand_values: OperandValues) {
-        self.operand_values = operand_values;
-    }
-
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+impl Executable for Multiply {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let callback = |left: RegisterValue, right: RegisterValue| { (left * right) as RegisterValue };
 
         let result = instructions::basic_register_execution(self, vm, callback);
@@ -171,55 +101,30 @@ impl Instruction for Multiply {
     }
 }
 
-
+/// Divide: Divides the values of two registers, loads the result into a third register, and saves the remainder
+/// Operands:
+///     - 0: `$D` | 1 Byte | RegisterId | RegisterId of the destination register (0-31)
+///     - 1: `$L` | 1 Byte | RegisterId | RegisterId of the left term
+///     - 2: `$R` | 1 Byte | RegisterId | RegisterId of the right term
+///
+/// Errors/ Panics
+///     - `AssemblerError` or `ProgramPanic`: If any register is out of bounds
+///     - `RuntimeError`: If the result is too large for a destination register
+///
+/// Examples
+/// ```asm
+/// DIV $01 $10 $30 // `49 01 0A 1E` - Divides the values of registers 10 and 30 ($10 / $30), stores the result in register 1, with the remainder
+/// DIV $40 $01 $10 // `48 28 01 0A` - AssemblerError because 40 is not a valid register
+/// ```
+#[derive(Instruction)]
+#[opcode = 73]
+#[signature = "DIV $D $L $R"]
 pub struct Divide {
     operand_values: OperandValues,
 }
 
-impl Divide {
-    pub const OPCODE: u8 = 5;
-}
-
-impl Instruction for Divide {
-    fn new(operand_values: OperandValues) -> Self where Self: Sized {
-        Divide {
-            operand_values
-        }
-    }
-
-    fn name(&self) -> String {
-        "Divide".to_string()
-    }
-
-    fn help(&self) -> String {
-        "Divides to numbers".to_string()
-    }
-
-    fn signature(&self) -> String {
-        "DIV $D $A $B".to_string()
-    }
-
-    fn identifier(&self) -> String {
-        "DIV".to_string()
-    }
-
-    fn opcode(&self) -> u8 {
-        Divide::OPCODE
-    }
-
-    fn operand_map() -> OperandMap where Self: Sized {
-        OperandMap::from([1, 1, 1])
-    }
-
-    fn operand_values(&self) -> &OperandValues {
-        &self.operand_values
-    }
-
-    fn set_operand_values(&mut self, operand_values: OperandValues) {
-        self.operand_values = operand_values;
-    }
-
-    fn execute(&self, vm: &mut VM) -> Result<ExecutionResult, Error> {
+impl Executable for Divide {
+    fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error> {
         let destination = self.operand_values[0].as_register_id();
 
         let left = self.get_register_value_for_operand(1, vm).unwrap();
@@ -238,18 +143,18 @@ impl Instruction for Divide {
 #[cfg(test)]
 mod tests {
     use crate::instructions::math::{Add, Divide, Multiply, Subtract};
+    use crate::vm::Kaylee;
     use crate::vm::Program;
-    use crate::vm::VM;
 
     #[test]
     fn test_add() {
         let program = Program::from([
-            2, 29, 0, 2,
-            2, 30, 1, 3,
-            2, 31, 29, 30,
+            Add::OPCODE, 29, 0, 2,
+            Add::OPCODE, 30, 1, 3,
+            Add::OPCODE, 31, 29, 30,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 12).unwrap();
         vm.set_register(1, 10).unwrap();
         vm.set_register(2, 500).unwrap();
@@ -274,7 +179,7 @@ mod tests {
             Subtract::OPCODE, 31, 29, 30,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 222).unwrap();
         vm.set_register(1, 14).unwrap();
         vm.set_register(2, 22).unwrap();
@@ -299,7 +204,7 @@ mod tests {
             Multiply::OPCODE, 31, 29, 30,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 2).unwrap();
         vm.set_register(1, 4).unwrap();
         vm.set_register(2, 6).unwrap();
@@ -322,7 +227,7 @@ mod tests {
             Divide::OPCODE, 31, 0, 1,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 16).unwrap();
         vm.set_register(1, 2).unwrap();
 
@@ -338,7 +243,7 @@ mod tests {
             Divide::OPCODE, 31, 0, 1,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 13).unwrap();
         vm.set_register(1, 5).unwrap();
 
@@ -363,7 +268,7 @@ mod tests {
             Divide::OPCODE, 31, 28, 30,
         ]);
 
-        let mut vm = VM::new();
+        let mut vm = Kaylee::new();
         vm.set_register(0, 2).unwrap();
         vm.set_register(1, 4).unwrap();
         vm.set_register(2, 6).unwrap();
