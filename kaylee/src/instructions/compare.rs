@@ -1,3 +1,5 @@
+//! Instructions for comparisons
+//! Opcodes reserved: 100 - 119
 use std::fmt::Error;
 
 use kaylee_derive::{Instruction, values};

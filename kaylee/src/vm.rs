@@ -1,6 +1,5 @@
 use crate::instructions::{decode_next_instruction, Instruction};
 
-// @Todo: I don't like these names
 // The id used for each register, key in the vector
 pub type RegisterId = usize;
 
@@ -62,6 +61,7 @@ impl Kaylee {
 
             if self.halted {
                 break;
+                // @todo: graceful shutdown of the machine/process
             }
         }
     }

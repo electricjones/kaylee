@@ -28,11 +28,19 @@ Named in honor of [Kaylee Frye](https://en.wikipedia.org/wiki/List_of_Firefly_(T
 - Heap and Stack Allocation
 
 ## Non Goals (for this toy project):
+
 - Exceptions or useful error handling.
 - Classes / Structs / Aliases / Other user defined types
 - More control-flow structures
 - Optimizations (beyond basic ones)
 - A true standard library. Only the `vm` and methods bolted onto types. All written in Rust.
 - To be actually useful for anything except learning
+
+## Learning / Architecture Goals
+
+- Move from intermediate to advanced competency in Rust
+- No "specific" dependencies like parsers, compilers, or assembly. Only use dependencies that are about generic data
+  structures and helpers.
+- To experiment with all the above. NOT to make a MIPS clone or any other clone.
 
 See `docs/` for the ever-evolving language specs and such.

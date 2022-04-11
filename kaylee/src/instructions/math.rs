@@ -1,3 +1,5 @@
+//! Instructions for arithmetic operations
+//! Opcodes reserved: 70 - 99
 use std::fmt::Error;
 
 use kaylee_derive::Instruction;

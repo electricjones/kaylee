@@ -2,16 +2,20 @@ use std::fmt::Error;
 
 use crate::instructions::compare::{Equal, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, NotEqual};
 use crate::instructions::data::Load;
+use crate::instructions::machine::Halt;
 use crate::instructions::math::{Add, Divide, Multiply, Subtract};
 use crate::instructions::program::{Jump, JumpBackward, JumpEqual, JumpForward};
-use crate::instructions::system::Halt;
 use crate::vm::{Byte, ExecutionResult, HalfWord, Kaylee, Program, ProgramIndex, RegisterId, RegisterValue, Word};
 
-mod system;
+mod machine;
 mod data;
 mod math;
 mod program;
 mod compare;
+mod logical;
+mod system;
+mod library;
+mod misc;
 
 #[derive(Debug)]
 pub enum InstructionDecodeError {
@@ -19,8 +23,8 @@ pub enum InstructionDecodeError {
     IllegalOpcode,
 }
 
-// @todo: does this return type need to be so complex? Probably
 pub fn decode_next_instruction(instructions: &Program, program_counter: &mut usize) -> Option<Result<Box<dyn Instruction>, InstructionDecodeError>> {
+    // @todo: I am not super happy with this decoding scheme. It should probably grab the entire slice (4 bytes) and handle them together
     if *program_counter >= instructions.len() {
         return None;
     }

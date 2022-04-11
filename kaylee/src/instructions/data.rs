@@ -1,3 +1,5 @@
+//! Instructions for manipulating data (registers and memory)
+//! Opcodes reserved: 30 - 49
 use std::fmt::Error;
 
 use kaylee_derive::{Instruction, values};

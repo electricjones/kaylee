@@ -1,3 +1,5 @@
+//! Instructions for navigating and manipulating the program
+//! Opcodes reserved: 50 - 69
 use std::fmt::Error;
 
 use kaylee_derive::Instruction;
@@ -131,8 +133,8 @@ impl Executable for JumpEqual {
 #[cfg(test)]
 mod tests {
     use crate::instructions::data::Load;
+    use crate::instructions::machine::Halt;
     use crate::instructions::program::{Jump, JumpBackward, JumpEqual, JumpForward};
-    use crate::instructions::system::Halt;
     use crate::vm::{Kaylee, Program};
 
     #[test]
