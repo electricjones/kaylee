@@ -104,9 +104,6 @@ pub fn consume_and_parse_values(signature: InstructionSignature, instructions: &
 
                 *program_counter += 3;
             }
-            _ => {
-                return Err(InstructionDecodeError::InvalidValueSize);
-            }
         };
     }
 

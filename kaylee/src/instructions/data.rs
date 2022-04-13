@@ -49,7 +49,7 @@ mod tests {
 
     #[test]
     fn test_load() {
-        let program = Program::from([
+        let program = Program::from(vec![
             Load::OPCODE, 4, 1, 244,  // LOAD $4 #500
             Load::OPCODE, 30, 0, 12,  // LOAD $6 #12
         ]);

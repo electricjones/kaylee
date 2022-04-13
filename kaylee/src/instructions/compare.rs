@@ -220,7 +220,7 @@ mod tests {
 
     #[test]
     fn test_equal() {
-        let program = Program::from([
+        let program = Program::from(vec![
             Equal::OPCODE, 30, 1, 2, // Pass
             Equal::OPCODE, 31, 3, 4, // Fail
         ]);
@@ -239,7 +239,7 @@ mod tests {
 
     #[test]
     fn test_not_equal() {
-        let program = Program::from([
+        let program = Program::from(vec![
             NotEqual::OPCODE, 30, 1, 2, // Pass
             NotEqual::OPCODE, 31, 3, 4, // Fail
         ]);
@@ -258,7 +258,7 @@ mod tests {
 
     #[test]
     fn test_greater_than() {
-        let program = Program::from([
+        let program = Program::from(vec![
             GreaterThan::OPCODE, 30, 1, 2, // Pass
             GreaterThan::OPCODE, 31, 3, 4, // Fail
         ]);
@@ -277,7 +277,7 @@ mod tests {
 
     #[test]
     fn test_less_than() {
-        let program = Program::from([
+        let program = Program::from(vec![
             LessThan::OPCODE, 30, 1, 2, // Pass
             LessThan::OPCODE, 31, 3, 4, // Fail
         ]);
@@ -296,7 +296,7 @@ mod tests {
 
     #[test]
     fn test_greater_than_or_equal() {
-        let program = Program::from([
+        let program = Program::from(vec![
             GreaterThanOrEqual::OPCODE, 28, 1, 2, // Pass
             GreaterThanOrEqual::OPCODE, 29, 3, 4, // Pass
             GreaterThanOrEqual::OPCODE, 30, 5, 6, // Fail
@@ -321,7 +321,7 @@ mod tests {
 
     #[test]
     fn test_less_than_or_equal() {
-        let program = Program::from([
+        let program = Program::from(vec![
             LessThanOrEqual::OPCODE, 28, 1, 2, // Pass
             LessThanOrEqual::OPCODE, 29, 3, 4, // Pass
             LessThanOrEqual::OPCODE, 30, 5, 6, // Fail

@@ -139,7 +139,7 @@ mod tests {
 
     #[test]
     fn test_jump() {
-        let program = Program::from([
+        let program = Program::from(vec![
             // A bunch of random load instructions
             Load::OPCODE, 0, 0, 100,
             Load::OPCODE, 1, 0, 100,
@@ -171,7 +171,7 @@ mod tests {
 
     #[test]
     fn test_jump_forward() {
-        let program = Program::from([
+        let program = Program::from(vec![
             // A bunch of random load instructions
             Load::OPCODE, 0, 0, 100,
             Load::OPCODE, 1, 0, 100,
@@ -203,7 +203,7 @@ mod tests {
 
     #[test]
     fn test_jump_backward() {
-        let program = Program::from([
+        let program = Program::from(vec![
             Load::OPCODE, 0, 0, 100, // Jump to here, execute
 
             Halt::OPCODE, 0, 0, 0, // Stop
@@ -235,7 +235,7 @@ mod tests {
 
     #[test]
     fn test_jump_if_equal() {
-        let program = Program::from([
+        let program = Program::from(vec![
             // A bunch of random load instructions
             Load::OPCODE, 0, 0, 100,
             Load::OPCODE, 1, 0, 100,
@@ -271,7 +271,7 @@ mod tests {
 
     #[test]
     fn test_dont_jump_if_not_equal() {
-        let program = Program::from([
+        let program = Program::from(vec![
             // A bunch of random load instructions
             Load::OPCODE, 0, 0, 100,
             Load::OPCODE, 1, 0, 100,

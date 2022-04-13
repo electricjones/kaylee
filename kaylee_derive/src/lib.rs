@@ -5,8 +5,6 @@ use proc_macro::TokenStream;
 // use proc_macro2::Ident;
 use quote::quote;
 use syn::{DeriveInput, Lit, Meta, parse_macro_input};
-use syn::Lit::Str;
-// use syn::Lit::Str;
 use syn::parse::Parser;
 
 // use std::process::id;
