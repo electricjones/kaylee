@@ -4,9 +4,8 @@ use std::fmt::Error;
 
 use kaylee_derive::Instruction;
 
-use crate::instructions;
 use crate::instructions::{display_instruction_with_values, Executable, Instruction, InstructionDocumentation, InstructionSignature, OperandType, OperandValues};
-use crate::vm::{ExecutionResult, Kaylee, RegisterId, RegisterValue};
+use crate::vm::{ExecutionResult, Kaylee, RegisterId};
 
 /// Jump: Resets the program counter to a constant value
 /// Operands:
@@ -135,7 +134,8 @@ mod tests {
     use crate::instructions::data::Load;
     use crate::instructions::machine::Halt;
     use crate::instructions::program::{Jump, JumpBackward, JumpEqual, JumpForward};
-    use crate::vm::{Kaylee, Program};
+    use crate::program::Program;
+    use crate::vm::Kaylee;
 
     #[test]
     fn test_jump() {

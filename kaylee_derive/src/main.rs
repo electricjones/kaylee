@@ -13,7 +13,7 @@ fn main() {
     let mut state = SignatureState::Identifier;
     let mut operand_index = 0;
 
-    for (index, char) in "LOAD $D #2 ".chars().into_iter().enumerate() {
+    for char in "LOAD $D #2 ".chars() {
         if char == ' ' {
             state = match state {
                 SignatureState::Identifier => {

@@ -3,9 +3,9 @@ use std::io;
 use std::io::Write;
 
 use crate::instructions::decode_next_instruction;
+use crate::program::Program;
 use crate::shared::parse_hex;
 use crate::vm::Kaylee;
-use crate::vm::Program;
 
 /// Core structure for the REPL for the Assembler
 pub struct Repl {

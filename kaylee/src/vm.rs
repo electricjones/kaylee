@@ -1,4 +1,5 @@
 use crate::instructions::{decode_next_instruction, Instruction};
+use crate::program::{Program, ProgramIndex};
 
 // The id used for each register, key in the vector
 pub type RegisterId = usize;
@@ -13,10 +14,6 @@ pub type Byte = u8;
 pub type HalfWord = u16;
 pub type Word = u32;
 pub type DoubleWord = u32;
-
-pub type ProgramIndex = usize;
-
-pub type Program = Vec<Byte>;
 
 pub enum ExecutionResult {
     Halted,

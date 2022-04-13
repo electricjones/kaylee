@@ -143,8 +143,8 @@ impl Executable for Divide {
 #[cfg(test)]
 mod tests {
     use crate::instructions::math::{Add, Divide, Multiply, Subtract};
+    use crate::program::Program;
     use crate::vm::Kaylee;
-    use crate::vm::Program;
 
     #[test]
     fn test_add() {

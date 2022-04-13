@@ -2,7 +2,7 @@
 //! Opcodes reserved: 30 - 49
 use std::fmt::Error;
 
-use kaylee_derive::{Instruction, values};
+use kaylee_derive::Instruction;
 
 use crate::instructions::{display_instruction_with_values, Executable, Instruction, InstructionDocumentation, InstructionSignature, OperandType, OperandValues};
 use crate::vm::{ExecutionResult, Kaylee};
@@ -44,8 +44,8 @@ impl Executable for Load {
 #[cfg(test)]
 mod tests {
     use crate::instructions::data::Load;
+    use crate::program::Program;
     use crate::vm::Kaylee;
-    use crate::vm::Program;
 
     #[test]
     fn test_load() {

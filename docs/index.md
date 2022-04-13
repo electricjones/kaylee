@@ -6,6 +6,8 @@ There is no organization to this document yet. I'm just jotting things down as I
 - Instructions are 1-4 `u8` words
 - Register Identifiers are `usize`
 - Register Values are `i32`
+- I went with a fairly brittle assembly, instead of a true recursion parser. KayleeASM is such a limited language, it
+  just made sense to be efficient.
 
 # Unconventional Choices
 

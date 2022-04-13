@@ -5,7 +5,8 @@ use crate::instructions::data::Load;
 use crate::instructions::machine::Halt;
 use crate::instructions::math::{Add, Divide, Multiply, Subtract};
 use crate::instructions::program::{Jump, JumpBackward, JumpEqual, JumpForward};
-use crate::vm::{Byte, ExecutionResult, HalfWord, Kaylee, Program, ProgramIndex, RegisterId, RegisterValue, Word};
+use crate::program::{Program, ProgramIndex};
+use crate::vm::{Byte, ExecutionResult, HalfWord, Kaylee, RegisterId, RegisterValue, Word};
 
 mod machine;
 mod data;
