@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.56"
+nom = "7.1.1"
 kaylee_derive = { path = "../kaylee_derive" }
