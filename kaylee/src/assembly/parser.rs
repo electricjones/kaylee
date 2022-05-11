@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+use std::iter::Map;
+
+use maplit::hashmap;
 use nom::{Err, IResult};
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take_till, take_till1, take_until, take_while, take_while1};
@@ -8,14 +12,55 @@ use nom::error::{ErrorKind, VerboseError};
 use nom::multi::{many0, many1, separated_list1};
 use nom::sequence::{delimited, pair, preceded, terminated, tuple};
 
-// @todo: This would require rewriting the instruction code itself to move the operand-map from the definition to the use
+use crate::program::Program;
+
+// @todo: This would require rewriting the instruction code itself to move the operand-MAP from the definition to the use
 
 // @todo: Also, allow for
 //@todo: - Labels
 //@todo: - Subroutines
 //@todo: - Comments
 
-fn parse_asm(s: &str) -> IResult<&str, Vec<Vec<&str>>, (&str, ErrorKind)> {
+
+/// @todo: This is awful. Absolutely no error checking
+pub fn into_bytecode(parsed: Vec<Vec<&str>>) -> Program {
+
+// @todo: This is temporary. Find a way to build this dynamically
+// @todo: https://users.rust-lang.org/t/macro-to-collect-metadata/75502
+    let map: HashMap<&str, [u8; 4]> = hashmap! {
+        "LOAD" => [30, 1, 2, 0],
+        "ADD" => [70, 1, 1, 1],
+    };
+
+    // @todo: End temporary work
+
+    let mut bytes: Vec<u8> = Vec::new();
+
+    for instruction in parsed {
+        // Get the info from the hashmap
+        let item = map.get(instruction[0]).unwrap();
+
+        // Push the opcode
+        bytes.push(item[0].clone());
+
+        for i in 1..instruction.len() {
+            if let Some(value) = instruction.get(i) {
+                // this is an operand, so we have to break it into u8 chunks
+                let number = value.parse::<i32>().unwrap();
+                let operand_bytes = number.to_be_bytes();
+
+                let byte_count = item[i];
+                let start_slice = (4 - byte_count) as usize;
+
+                bytes.extend(&operand_bytes[start_slice..]);
+            }
+        }
+    }
+
+    Program::from(bytes)
+}
+
+pub fn parse_asm(s: &str) -> IResult<&str, Vec<Vec<&str>>, (&str, ErrorKind)> {
     separated_list1(many0(newline), line)(s)
 }
 
@@ -46,7 +91,8 @@ mod test {
     use nom::error::ErrorKind;
     use nom::IResult;
 
-    use crate::assembly::parser::{instruction_parser, is_valid_keyword_character, operand_parser, operation_keyword, parse_asm};
+    use crate::assembly::parser::{instruction_parser, into_bytecode, is_valid_keyword_character, operand_parser, operation_keyword, parse_asm};
+    use crate::program::Program;
 
     #[test]
     pub fn test_is_valid_keyword_character() {
@@ -111,5 +157,22 @@ DIE #1
             vec!["DIE", "1"],
             vec!["HALT"],
         ];
+    }
+
+    #[test]
+    pub fn test_into_bytecode() {
+        let parsed = vec![
+            vec!["LOAD", "1", "500"],
+            vec!["ADD", "2", "3", "2"],
+        ];
+
+        let expected = Program::from(vec![
+            30, 1, 1, 244,
+            70, 2, 3, 2,
+        ]);
+
+        let actual = into_bytecode(parsed);
+
+        assert_eq!(expected, actual);
     }
 }

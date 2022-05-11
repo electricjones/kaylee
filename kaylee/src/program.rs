@@ -4,6 +4,7 @@ use crate::vm::Byte;
 
 pub type ProgramIndex = usize;
 
+#[derive(PartialEq, Debug)]
 pub struct Program {
     bytes: Vec<Byte>,
 }
