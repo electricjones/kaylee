@@ -3,7 +3,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 
 // use proc_macro2::Ident;
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{DeriveInput, Lit, Meta, parse_macro_input};
 use syn::parse::Parser;
 
@@ -108,6 +108,9 @@ pub fn derive_instruction(input: TokenStream) -> TokenStream {
     }
 
     let name = format!("{}", struct_name);
+    let identifier_string = format!("{identifier}");
+    let const_name = format_ident!("{struct_name}_STATIC");
+
     let op1 = &operands[0];
     let op2 = &operands[1];
     let op3 = &operands[2];
@@ -144,6 +147,9 @@ pub fn derive_instruction(input: TokenStream) -> TokenStream {
                 &self.operand_values
             }
         }
+        
+        #[linkme::distributed_slice(crate::assembly::parser::MY_MAP)]
+        static #const_name: crate::assembly::parser::MapOperands = (#identifier_string, #opcode, [#op1, #op2, #op3]);
     };
 
     tokens.into()

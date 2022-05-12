@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::iter::Map;
 
+use linkme::distributed_slice;
 use maplit::hashmap;
 use nom::{Err, IResult};
 use nom::branch::alt;
@@ -12,6 +13,7 @@ use nom::error::{ErrorKind, VerboseError};
 use nom::multi::{many0, many1, separated_list1};
 use nom::sequence::{delimited, pair, preceded, terminated, tuple};
 
+use crate::instructions::OperandType;
 use crate::program::Program;
 
 // @todo: This would require rewriting the instruction code itself to move the operand-MAP from the definition to the use
@@ -21,16 +23,31 @@ use crate::program::Program;
 //@todo: - Subroutines
 //@todo: - Comments
 
+pub type MapOperands = (&'static str, u8, [OperandType; 3]);
+
+#[distributed_slice]
+pub static MY_MAP: [MapOperands] = [..];
+
+// #[distributed_slice(MY_MAP)]
+// static N: i32 = 9;
+// static N: (&'static str, u8, u8, u8, u8) = ("LOAD", 30, 1, 2, 0);
+
+// #[distributed_slice(SHENANIGANS)]
+// static NNN: i32 = 999;
 
 /// @todo: This is awful. Absolutely no error checking
 pub fn into_bytecode(parsed: Vec<Vec<&str>>) -> Program {
 
 // @todo: This is temporary. Find a way to build this dynamically
 // @todo: https://users.rust-lang.org/t/macro-to-collect-metadata/75502
-    let map: HashMap<&str, [u8; 4]> = hashmap! {
-        "LOAD" => [30, 1, 2, 0],
-        "ADD" => [70, 1, 1, 1],
-    };
+//     let map: HashMap<&str, [u8; 4]> = hashmap! {
+//         "LOAD" => [30, 1, 2, 0],
+//         "ADD" => [70, 1, 1, 1],
+//     };
+//     
+//     for _i in MY_MAP {
+//         let a = true;
+//     }
 
     // @todo: End temporary work
 
@@ -38,18 +55,33 @@ pub fn into_bytecode(parsed: Vec<Vec<&str>>) -> Program {
 
     for instruction in parsed {
         // Get the info from the hashmap
-        let item = map.get(instruction[0]).unwrap();
+        let mut item: Option<&MapOperands> = None;
+        for a in MY_MAP {
+            if a.0 == instruction[0] {
+                item = Some(a);
+                break;
+            }
+        }
 
         // Push the opcode
-        bytes.push(item[0].clone());
+        bytes.push(item.unwrap().1.clone());
 
-        for i in 1..instruction.len() {
+        for i in 1..(instruction.len()) {
             if let Some(value) = instruction.get(i) {
                 // this is an operand, so we have to break it into u8 chunks
                 let number = value.parse::<i32>().unwrap();
                 let operand_bytes = number.to_be_bytes();
 
-                let byte_count = item[i];
+                let spot: &OperandType = &item.unwrap().2[i - 1];
+
+                let byte_count = match spot {
+                    OperandType::None => 0 as u8,
+                    OperandType::RegisterId => 1 as u8,
+                    OperandType::ConstantByte => 1 as u8,
+                    OperandType::ConstantHalfWord => 2 as u8,
+                    OperandType::ConstantWord => 3 as u8,
+                };
+
                 let start_slice = (4 - byte_count) as usize;
 
                 bytes.extend(&operand_bytes[start_slice..]);

@@ -14,6 +14,7 @@ version = "0.1.0"
 dependencies = [
     "anyhow",
     "kaylee_derive",
+    "linkme",
     "maplit",
     "nom",
 ]
@@ -21,6 +22,26 @@ dependencies = [
 [[package]]
 name = "kaylee_derive"
 version = "0.1.0"
+dependencies = [
+    "proc-macro2",
+    "quote",
+    "syn",
+]
+
+[[package]]
+name = "linkme"
+version = "0.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edd4ad156b9934dc21cad96fd17278a7cb6f30a5657a9d976cd7b71d6d49c02c"
+dependencies = [
+    "linkme-impl",
+]
+
+[[package]]
+name = "linkme-impl"
+version = "0.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73fd9dc7072de7168cbdaba9125e8f742cd3a965aa12bde994b4611a174488d8"
 dependencies = [
     "proc-macro2",
     "quote",
