@@ -1,17 +1,12 @@
-use std::collections::HashMap;
-use std::iter::Map;
-
 use linkme::distributed_slice;
-use maplit::hashmap;
-use nom::{Err, IResult};
+use nom::IResult;
 use nom::branch::alt;
-use nom::bytes::complete::{tag, take_till, take_till1, take_until, take_while, take_while1};
-use nom::character::{is_alphabetic, is_newline};
-use nom::character::complete::{alpha1, alphanumeric1, digit1, multispace0, multispace1, newline, space0, space1};
-use nom::combinator::opt;
-use nom::error::{ErrorKind, VerboseError};
-use nom::multi::{many0, many1, separated_list1};
-use nom::sequence::{delimited, pair, preceded, terminated, tuple};
+use nom::bytes::complete::{tag, take_while1};
+use nom::character::is_alphabetic;
+use nom::character::complete::{digit1, multispace0, newline, space0, space1};
+use nom::error::ErrorKind;
+use nom::multi::{many0, separated_list1};
+use nom::sequence::{delimited, preceded};
 
 use crate::instructions::OperandType;
 use crate::program::Program;
@@ -121,7 +116,6 @@ fn operand_parser(s: &str) -> IResult<&str, &str, (&str, ErrorKind)> {
 mod test {
     use nom::Err::Error;
     use nom::error::ErrorKind;
-    use nom::IResult;
 
     use crate::assembly::parser::{instruction_parser, into_bytecode, is_valid_keyword_character, operand_parser, operation_keyword, parse_asm};
     use crate::program::Program;
@@ -189,6 +183,8 @@ DIE #1
             vec!["DIE", "1"],
             vec!["HALT"],
         ];
+
+        assert_eq!(expected, parse_asm(input).unwrap().1);
     }
 
     #[test]
