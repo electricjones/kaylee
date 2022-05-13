@@ -5,55 +5,66 @@ use crate::program::Program;
 
 pub type MapOperands = (&'static str, u8, [OperandType; 3]);
 
+// @todo: This probably belongs elsewhere. In instructions, I'd wager.
 #[distributed_slice]
 pub static MY_MAP: [MapOperands] = [..];
 
-/// @todo: This is awful. Absolutely no error checking
-pub fn into_bytecode(parsed: Vec<Vec<&str>>) -> Program {
-    let mut bytes: Vec<u8> = Vec::new();
+pub struct Assembler {
+    // There will be state needed eventually
+}
 
-    for instruction in parsed {
-        // Get the info from the hashmap
-        let mut item: Option<&MapOperands> = None;
-        for a in MY_MAP {
-            if a.0 == instruction[0] {
-                item = Some(a);
-                break;
-            }
-        }
-
-        // Push the opcode
-        bytes.push(item.unwrap().1.clone());
-
-        for i in 1..(instruction.len()) {
-            if let Some(value) = instruction.get(i) {
-                // this is an operand, so we have to break it into u8 chunks
-                let number = value.parse::<i32>().unwrap();
-                let operand_bytes = number.to_be_bytes();
-
-                let spot: &OperandType = &item.unwrap().2[i - 1];
-
-                let byte_count = match spot {
-                    OperandType::None => 0 as u8,
-                    OperandType::RegisterId => 1 as u8,
-                    OperandType::ConstantByte => 1 as u8,
-                    OperandType::ConstantHalfWord => 2 as u8,
-                    OperandType::ConstantWord => 3 as u8,
-                };
-
-                let start_slice = (4 - byte_count) as usize;
-
-                bytes.extend(&operand_bytes[start_slice..]);
-            }
-        }
+impl Assembler {
+    pub fn new() -> Self {
+        Assembler {}
     }
 
-    Program::from(bytes)
+    /// @todo: This is awful. Absolutely no error checking
+    pub fn assemble_parsed_asm(&self, parsed: Vec<Vec<&str>>) -> Program {
+        let mut bytes: Vec<u8> = Vec::new();
+
+        for instruction in parsed {
+            // Get the info from the hashmap
+            let mut item: Option<&MapOperands> = None;
+            for a in MY_MAP {
+                if a.0 == instruction[0] {
+                    item = Some(a);
+                    break;
+                }
+            }
+
+            // Push the opcode
+            bytes.push(item.unwrap().1.clone());
+
+            for i in 1..(instruction.len()) {
+                if let Some(value) = instruction.get(i) {
+                    // this is an operand, so we have to break it into u8 chunks
+                    let number = value.parse::<i32>().unwrap();
+                    let operand_bytes = number.to_be_bytes();
+
+                    let spot: &OperandType = &item.unwrap().2[i - 1];
+
+                    let byte_count = match spot {
+                        OperandType::None => 0 as u8,
+                        OperandType::RegisterId => 1 as u8,
+                        OperandType::ConstantByte => 1 as u8,
+                        OperandType::ConstantHalfWord => 2 as u8,
+                        OperandType::ConstantWord => 3 as u8,
+                    };
+
+                    let start_slice = (4 - byte_count) as usize;
+
+                    bytes.extend(&operand_bytes[start_slice..]);
+                }
+            }
+        }
+
+        Program::from(bytes)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::asm::assembler::into_bytecode;
+    use crate::asm::assembler::Assembler;
     use crate::program::Program;
 
     #[test]
@@ -68,7 +79,8 @@ mod tests {
             70, 2, 3, 2,
         ]);
 
-        let actual = into_bytecode(parsed);
+        let assembler = Assembler::new();
+        let actual = assembler.assemble_parsed_asm(parsed);
 
         assert_eq!(expected, actual);
     }

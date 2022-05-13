@@ -10,12 +10,10 @@ use nom::sequence::{delimited, preceded};
 use crate::instructions::OperandType;
 use crate::program::Program;
 
-// @todo: This would require rewriting the instruction code itself to move the operand-MAP from the definition to the use
-
 // @todo: Also, allow for
-//@todo: - Labels
-//@todo: - Subroutines
-//@todo: - Comments
+// - Labels
+// - Subroutines / Macros
+// - Comments
 
 
 pub fn parse_asm(s: &str) -> IResult<&str, Vec<Vec<&str>>, (&str, ErrorKind)> {
