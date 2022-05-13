@@ -7,6 +7,7 @@ use nom::IResult;
 use nom::multi::{many0, separated_list1};
 use nom::sequence::{delimited, preceded};
 
+use crate::asm::{Parsed, parser, Source};
 use crate::instructions::OperandType;
 use crate::program::Program;
 
@@ -15,8 +16,7 @@ use crate::program::Program;
 // - Subroutines / Macros
 // - Comments
 
-
-pub fn parse_asm(s: &str) -> IResult<&str, Vec<Vec<&str>>, (&str, ErrorKind)> {
+pub fn parse_asm(s: &str) -> IResult<&str, Parsed, (&str, ErrorKind)> {
     separated_list1(many0(newline), line)(s)
 }
 

@@ -1,5 +1,12 @@
+use std::borrow::Borrow;
 use std::ops::Index;
 
+use nom::Err;
+use nom::error::ErrorKind;
+
+use crate::asm::{Parsed, Source};
+use crate::asm::assembler::{Assembler, AssemblerError};
+use crate::asm::parser::parse_asm;
 use crate::vm::Byte;
 
 pub type ProgramIndex = usize;
@@ -38,6 +45,30 @@ impl Program {
 
     pub fn len(&self) -> usize {
         self.bytes.len()
+    }
+}
+
+impl<'a> TryFrom<Parsed<'a>> for Program {
+    type Error = AssemblerError;
+
+    fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
+        let assembler = Assembler::new();
+        assembler.assemble_parsed_asm(parsed)
+    }
+}
+
+impl TryFrom<Source> for Program {
+    type Error = AssemblerError;
+
+    fn try_from(source: Source) -> Result<Self, Self::Error> {
+        // let parsed = Parsed::try_from(source);
+        let parsed = parse_asm(source.body.as_str());
+        match parsed {
+            Ok(success) => {
+                success.1.try_into()
+            }
+            Err(failure) => Err(AssemblerError::Other(String::from("Parsing error")))
+        }
     }
 }
 

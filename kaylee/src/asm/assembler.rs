@@ -9,6 +9,11 @@ pub type MapOperands = (&'static str, u8, [OperandType; 3]);
 #[distributed_slice]
 pub static MY_MAP: [MapOperands] = [..];
 
+#[derive(Debug, PartialEq)]
+pub enum AssemblerError {
+    Other(String),
+}
+
 pub struct Assembler {
     // There will be state needed eventually
 }
@@ -19,7 +24,7 @@ impl Assembler {
     }
 
     /// @todo: This is awful. Absolutely no error checking
-    pub fn assemble_parsed_asm(&self, parsed: Vec<Vec<&str>>) -> Program {
+    pub fn assemble_parsed_asm(&self, parsed: Vec<Vec<&str>>) -> Result<Program, AssemblerError> {
         let mut bytes: Vec<u8> = Vec::new();
 
         for instruction in parsed {
@@ -58,7 +63,7 @@ impl Assembler {
             }
         }
 
-        Program::from(bytes)
+        Ok(Program::from(bytes))
     }
 }
 
@@ -80,7 +85,7 @@ mod tests {
         ]);
 
         let assembler = Assembler::new();
-        let actual = assembler.assemble_parsed_asm(parsed);
+        let actual = assembler.assemble_parsed_asm(parsed).unwrap();
 
         assert_eq!(expected, actual);
     }
