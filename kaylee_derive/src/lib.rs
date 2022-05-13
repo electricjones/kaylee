@@ -148,8 +148,8 @@ pub fn derive_instruction(input: TokenStream) -> TokenStream {
             }
         }
         
-        #[linkme::distributed_slice(crate::assembly::parser::MY_MAP)]
-        static #const_name: crate::assembly::parser::MapOperands = (#identifier_string, #opcode, [#op1, #op2, #op3]);
+        #[linkme::distributed_slice(crate::asm::assembler::MY_MAP)]
+        static #const_name: crate::asm::assembler::MapOperands = (#identifier_string, #opcode, [#op1, #op2, #op3]);
     };
 
     tokens.into()

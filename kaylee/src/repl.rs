@@ -14,7 +14,7 @@ pub struct Repl {
 }
 
 impl Repl {
-    /// Creates and returns a new assembly REPL
+    /// Creates and returns a new asm REPL
     pub fn new() -> Repl {
         Repl {
             vm: Kaylee::new(),

@@ -5,5 +5,5 @@ pub mod shared;
 pub mod vm;
 pub mod repl;
 pub mod instructions;
-pub mod assembly;
+pub mod asm;
 pub mod program;
