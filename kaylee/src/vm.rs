@@ -72,7 +72,7 @@ impl Kaylee {
     }
 
     fn execute_instruction(&mut self, instruction: Box<dyn Instruction>) {
-        instruction.execute(self);
+        instruction.execute(self).unwrap();
 
         // I should probably do something with these results, or pass them back
         // match instruction.execute(self) {

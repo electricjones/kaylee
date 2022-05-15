@@ -1,4 +1,4 @@
-use crate::instructions::{_INSTRUCTION_REGISTRY, InstructionRegistry, OperandType, RegisteredInstruction};
+use crate::instructions::{InstructionRegistry, OperandType};
 use crate::program::Program;
 
 #[derive(Debug, PartialEq)]
