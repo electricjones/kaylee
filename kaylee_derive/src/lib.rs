@@ -143,8 +143,8 @@ pub fn derive_instruction(input: TokenStream) -> TokenStream {
             }
         }
         
-        #[linkme::distributed_slice(crate::instructions::INSTRUCTION_REGISTRY)]
-        static #const_name: crate::instructions::RegistryOperands = (#identifier_string, #opcode, [#op1, #op2, #op3]);
+        #[linkme::distributed_slice(crate::instructions::_INSTRUCTION_REGISTRY)]
+        static #const_name: crate::instructions::RegisteredInstruction = (#identifier_string, #opcode, [#op1, #op2, #op3]);
     };
 
     tokens.into()

@@ -1,4 +1,4 @@
-use crate::instructions::{INSTRUCTION_REGISTRY, OperandType, RegistryOperands};
+use crate::instructions::{_INSTRUCTION_REGISTRY, InstructionRegistry, OperandType, RegisteredInstruction};
 use crate::program::Program;
 
 #[derive(Debug, PartialEq)]
@@ -20,14 +20,7 @@ impl Assembler {
         let mut bytes: Vec<u8> = Vec::new();
 
         for instruction in parsed {
-            // Get the info from the hashmap
-            let mut item: Option<&RegistryOperands> = None;
-            for registered_instruction in INSTRUCTION_REGISTRY {
-                if registered_instruction.0 == instruction[0] {
-                    item = Some(registered_instruction);
-                    break;
-                }
-            }
+            let item = InstructionRegistry::get(instruction[0]);
 
             // Push the opcode
             bytes.push(item.unwrap().1.clone());

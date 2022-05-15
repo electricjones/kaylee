@@ -21,12 +21,28 @@ mod library;
 mod misc;
 
 /// Type for the three operand slots allowed for each instruction
-pub type RegistryOperands = (&'static str, u8, [OperandType; 3]);
+pub type RegisteredInstruction = (&'static str, u8, [OperandType; 3]);
 
 /// A dynamically built (at link-time) registry of all defined instructions
 /// This allows for runtime listing, matching, etc.
 #[distributed_slice]
-pub static INSTRUCTION_REGISTRY: [RegistryOperands] = [..];
+pub static _INSTRUCTION_REGISTRY: [RegisteredInstruction] = [..];
+
+pub struct InstructionRegistry {}
+
+impl InstructionRegistry {
+    pub fn get(operation: &str) -> Option<&RegisteredInstruction> {
+        let mut item: Option<&RegisteredInstruction> = None;
+        for registered_instruction in _INSTRUCTION_REGISTRY {
+            if registered_instruction.0 == operation {
+                item = Some(registered_instruction);
+                break;
+            }
+        }
+
+        item
+    }
+}
 
 #[derive(Debug)]
 pub enum InstructionDecodeError {
