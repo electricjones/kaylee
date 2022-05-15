@@ -1,13 +1,5 @@
-use linkme::distributed_slice;
-
-use crate::instructions::OperandType;
+use crate::instructions::{INSTRUCTION_REGISTRY, OperandType, RegistryOperands};
 use crate::program::Program;
-
-pub type MapOperands = (&'static str, u8, [OperandType; 3]);
-
-// @todo: This probably belongs elsewhere. In instructions, I'd wager.
-#[distributed_slice]
-pub static MY_MAP: [MapOperands] = [..];
 
 #[derive(Debug, PartialEq)]
 pub enum AssemblerError {
@@ -29,10 +21,10 @@ impl Assembler {
 
         for instruction in parsed {
             // Get the info from the hashmap
-            let mut item: Option<&MapOperands> = None;
-            for a in MY_MAP {
-                if a.0 == instruction[0] {
-                    item = Some(a);
+            let mut item: Option<&RegistryOperands> = None;
+            for registered_instruction in INSTRUCTION_REGISTRY {
+                if registered_instruction.0 == instruction[0] {
+                    item = Some(registered_instruction);
                     break;
                 }
             }

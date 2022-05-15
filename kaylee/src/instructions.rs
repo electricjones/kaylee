@@ -1,5 +1,7 @@
 use std::fmt::Error;
 
+use linkme::distributed_slice;
+
 use crate::instructions::compare::{Equal, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, NotEqual};
 use crate::instructions::data::Load;
 use crate::instructions::machine::Halt;
@@ -17,6 +19,14 @@ mod logical;
 mod system;
 mod library;
 mod misc;
+
+/// Type for the three operand slots allowed for each instruction
+pub type RegistryOperands = (&'static str, u8, [OperandType; 3]);
+
+/// A dynamically built (at link-time) registry of all defined instructions
+/// This allows for runtime listing, matching, etc.
+#[distributed_slice]
+pub static INSTRUCTION_REGISTRY: [RegistryOperands] = [..];
 
 #[derive(Debug)]
 pub enum InstructionDecodeError {

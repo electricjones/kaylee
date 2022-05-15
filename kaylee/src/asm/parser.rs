@@ -9,31 +9,34 @@ use nom::sequence::{delimited, preceded};
 
 use crate::asm::Parsed;
 
-// @todo: Also, allow for
-// - Labels
-// - Subroutines / Macros
-// - Comments
-
+/// Parse any source string into a Parsed vector of strings
+/// Does not actually parse to token enumerations. It simply splits a source into substrings.
+/// The assembler takes these split strings and assembles them into true bytecode
 pub fn parse_asm(s: &str) -> IResult<&str, Parsed, (&str, ErrorKind)> {
     separated_list1(many0(newline), line)(s)
 }
 
+/// Parse a single line into a vector of tokens
 fn line(s: &str) -> IResult<&str, Vec<&str>, (&str, ErrorKind)> {
     delimited(multispace0, instruction_parser, space0)(s)
 }
 
+/// Parse a single instruction into an operation and operands
 fn instruction_parser(s: &str) -> IResult<&str, Vec<&str>, (&str, ErrorKind)> {
     separated_list1(space1, alt((operation_keyword, operand_parser)))(s)
 }
 
+/// Parse a single keyword into a keyword token
 fn operation_keyword(s: &str) -> IResult<&str, &str, (&str, ErrorKind)> {
     preceded(space0, take_while1(is_valid_keyword_character))(s)
 }
 
+/// Determine if a keyword is a valid operation
 fn is_valid_keyword_character(c: char) -> bool {
     is_alphabetic(c as u8) || c == '.' || c == '_'
 }
 
+/// Parse an operand
 fn operand_parser(s: &str) -> IResult<&str, &str, (&str, ErrorKind)> {
     preceded(alt((tag("$"), tag("#"))), digit1)(s)
 }

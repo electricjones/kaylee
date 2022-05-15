@@ -2,14 +2,9 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 
-// use proc_macro2::Ident;
 use quote::{format_ident, quote};
 use syn::{DeriveInput, Lit, Meta, parse_macro_input};
 use syn::parse::Parser;
-
-// use std::process::id;
-
-// use syn::parse_macro_input::ParseMacroInput;
 
 enum SignatureState {
     Identifier,
@@ -148,8 +143,8 @@ pub fn derive_instruction(input: TokenStream) -> TokenStream {
             }
         }
         
-        #[linkme::distributed_slice(crate::asm::assembler::MY_MAP)]
-        static #const_name: crate::asm::assembler::MapOperands = (#identifier_string, #opcode, [#op1, #op2, #op3]);
+        #[linkme::distributed_slice(crate::instructions::INSTRUCTION_REGISTRY)]
+        static #const_name: crate::instructions::RegistryOperands = (#identifier_string, #opcode, [#op1, #op2, #op3]);
     };
 
     tokens.into()
