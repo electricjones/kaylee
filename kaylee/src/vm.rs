@@ -1,4 +1,5 @@
 use crate::instructions::{decode_next_instruction, Instruction};
+use crate::program::{Program, ProgramIndex};
 
 // The id used for each register, key in the vector
 pub type RegisterId = usize;
@@ -13,10 +14,6 @@ pub type Byte = u8;
 pub type HalfWord = u16;
 pub type Word = u32;
 pub type DoubleWord = u32;
-
-pub type ProgramIndex = usize;
-
-pub type Program = Vec<Byte>;
 
 pub enum ExecutionResult {
     Halted,
@@ -75,14 +72,17 @@ impl Kaylee {
     }
 
     fn execute_instruction(&mut self, instruction: Box<dyn Instruction>) {
-        match instruction.execute(self) {
-            Ok(ExecutionResult::Value(value)) => println!("{value}"),
-            Ok(ExecutionResult::Halted) => println!("Halting"),
-            Ok(ExecutionResult::Jumped(index)) => println!("Jumped to {index}"),
-            Ok(ExecutionResult::Equality(flag)) => println!("Jumped to {flag}"),
-            Ok(ExecutionResult::NoAction) => println!("No Action"),
-            Err(_) => panic!("Error")
-        }
+        instruction.execute(self).unwrap();
+
+        // I should probably do something with these results, or pass them back
+        // match instruction.execute(self) {
+        //     Ok(ExecutionResult::Value(value)) => println!("{value}"),
+        //     Ok(ExecutionResult::Halted) => println!("Halting"),
+        //     Ok(ExecutionResult::Jumped(index)) => println!("Jumped to {index}"),
+        //     Ok(ExecutionResult::Equality(flag)) => println!("Jumped to {flag}"),
+        //     Ok(ExecutionResult::NoAction) => println!("No Action"),
+        //     Err(_) => panic!("Error")
+        // }
     }
 
     pub(crate) fn register(&self, register: RegisterId) -> Result<RegisterValue, ()> {

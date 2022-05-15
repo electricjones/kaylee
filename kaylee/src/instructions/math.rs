@@ -143,12 +143,12 @@ impl Executable for Divide {
 #[cfg(test)]
 mod tests {
     use crate::instructions::math::{Add, Divide, Multiply, Subtract};
+    use crate::program::Program;
     use crate::vm::Kaylee;
-    use crate::vm::Program;
 
     #[test]
     fn test_add() {
-        let program = Program::from([
+        let program = Program::from(vec![
             Add::OPCODE, 29, 0, 2,
             Add::OPCODE, 30, 1, 3,
             Add::OPCODE, 31, 29, 30,
@@ -173,7 +173,7 @@ mod tests {
 
     #[test]
     fn test_subtract() {
-        let program = Program::from([
+        let program = Program::from(vec![
             Subtract::OPCODE, 29, 0, 2,
             Subtract::OPCODE, 30, 1, 3,
             Subtract::OPCODE, 31, 29, 30,
@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     fn test_multiply() {
-        let program = Program::from([
+        let program = Program::from(vec![
             Multiply::OPCODE, 29, 0, 2,
             Multiply::OPCODE, 30, 1, 3,
             Multiply::OPCODE, 31, 29, 30,
@@ -223,7 +223,7 @@ mod tests {
 
     #[test]
     fn test_divide_no_remainder() {
-        let program = Program::from([
+        let program = Program::from(vec![
             Divide::OPCODE, 31, 0, 1,
         ]);
 
@@ -239,7 +239,7 @@ mod tests {
 
     #[test]
     fn test_divide_with_remainder() {
-        let program = Program::from([
+        let program = Program::from(vec![
             Divide::OPCODE, 31, 0, 1,
         ]);
 
@@ -255,7 +255,7 @@ mod tests {
 
     #[test]
     fn test_math() {
-        let program = Program::from([
+        let program = Program::from(vec![
             Add::OPCODE, 29, 0, 2,
             Add::OPCODE, 30, 29, 2,
             Subtract::OPCODE, 30, 29, 1,

@@ -1,18 +1,10 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use std::ops::Index;
 
-// use proc_macro2::Ident;
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{DeriveInput, Lit, Meta, parse_macro_input};
-use syn::Lit::Str;
-// use syn::Lit::Str;
 use syn::parse::Parser;
-
-// use std::process::id;
-
-// use syn::parse_macro_input::ParseMacroInput;
 
 enum SignatureState {
     Identifier,
@@ -111,6 +103,9 @@ pub fn derive_instruction(input: TokenStream) -> TokenStream {
     }
 
     let name = format!("{}", struct_name);
+    let identifier_string = format!("{identifier}");
+    let const_name = format_ident!("{struct_name}_STATIC");
+
     let op1 = &operands[0];
     let op2 = &operands[1];
     let op3 = &operands[2];
@@ -147,6 +142,9 @@ pub fn derive_instruction(input: TokenStream) -> TokenStream {
                 &self.operand_values
             }
         }
+        
+        #[linkme::distributed_slice(crate::instructions::_INSTRUCTION_REGISTRY)]
+        static #const_name: crate::instructions::RegisteredInstruction = (#identifier_string, #opcode, [#op1, #op2, #op3]);
     };
 
     tokens.into()

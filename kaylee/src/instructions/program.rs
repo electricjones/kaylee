@@ -4,9 +4,8 @@ use std::fmt::Error;
 
 use kaylee_derive::Instruction;
 
-use crate::instructions;
 use crate::instructions::{display_instruction_with_values, Executable, Instruction, InstructionDocumentation, InstructionSignature, OperandType, OperandValues};
-use crate::vm::{ExecutionResult, Kaylee, RegisterId, RegisterValue};
+use crate::vm::{ExecutionResult, Kaylee, RegisterId};
 
 /// Jump: Resets the program counter to a constant value
 /// Operands:
@@ -135,11 +134,12 @@ mod tests {
     use crate::instructions::data::Load;
     use crate::instructions::machine::Halt;
     use crate::instructions::program::{Jump, JumpBackward, JumpEqual, JumpForward};
-    use crate::vm::{Kaylee, Program};
+    use crate::program::Program;
+    use crate::vm::Kaylee;
 
     #[test]
     fn test_jump() {
-        let program = Program::from([
+        let program = Program::from(vec![
             // A bunch of random load instructions
             Load::OPCODE, 0, 0, 100,
             Load::OPCODE, 1, 0, 100,
@@ -171,7 +171,7 @@ mod tests {
 
     #[test]
     fn test_jump_forward() {
-        let program = Program::from([
+        let program = Program::from(vec![
             // A bunch of random load instructions
             Load::OPCODE, 0, 0, 100,
             Load::OPCODE, 1, 0, 100,
@@ -203,7 +203,7 @@ mod tests {
 
     #[test]
     fn test_jump_backward() {
-        let program = Program::from([
+        let program = Program::from(vec![
             Load::OPCODE, 0, 0, 100, // Jump to here, execute
 
             Halt::OPCODE, 0, 0, 0, // Stop
@@ -235,7 +235,7 @@ mod tests {
 
     #[test]
     fn test_jump_if_equal() {
-        let program = Program::from([
+        let program = Program::from(vec![
             // A bunch of random load instructions
             Load::OPCODE, 0, 0, 100,
             Load::OPCODE, 1, 0, 100,
@@ -271,7 +271,7 @@ mod tests {
 
     #[test]
     fn test_dont_jump_if_not_equal() {
-        let program = Program::from([
+        let program = Program::from(vec![
             // A bunch of random load instructions
             Load::OPCODE, 0, 0, 100,
             Load::OPCODE, 1, 0, 100,

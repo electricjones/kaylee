@@ -1,11 +1,14 @@
 use std::fmt::Error;
 
+use linkme::distributed_slice;
+
 use crate::instructions::compare::{Equal, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, NotEqual};
 use crate::instructions::data::Load;
 use crate::instructions::machine::Halt;
 use crate::instructions::math::{Add, Divide, Multiply, Subtract};
 use crate::instructions::program::{Jump, JumpBackward, JumpEqual, JumpForward};
-use crate::vm::{Byte, ExecutionResult, HalfWord, Kaylee, Program, ProgramIndex, RegisterId, RegisterValue, Word};
+use crate::program::{Program, ProgramIndex};
+use crate::vm::{Byte, ExecutionResult, HalfWord, Kaylee, RegisterId, RegisterValue, Word};
 
 mod machine;
 mod data;
@@ -17,12 +20,41 @@ mod system;
 mod library;
 mod misc;
 
+/// Type for the three operand slots allowed for each instruction
+pub type RegisteredInstruction = (&'static str, u8, [OperandType; 3]);
+
+/// Data Repository for Registered Instructions. 
+/// Not intended to be directly accessed. Use `InstructionRegistry` instead.
+#[distributed_slice]
+pub static _INSTRUCTION_REGISTRY: [RegisteredInstruction] = [..];
+
+/// Link-time built registry of all allowed instructions, including signatures.
+/// Useful for parsing, listing, and examining instructions
+pub struct InstructionRegistry {}
+
+impl InstructionRegistry {
+    /// Get a RegisteredInstruction from the InstructionRegistry if it exists
+    pub fn get(operation: &str) -> Option<&RegisteredInstruction> {
+        let mut item: Option<&RegisteredInstruction> = None;
+        for registered_instruction in _INSTRUCTION_REGISTRY {
+            if registered_instruction.0 == operation {
+                item = Some(registered_instruction);
+                break;
+            }
+        }
+
+        item
+    }
+}
+
+/// Errors concerning decoding instruction bytecode
 #[derive(Debug)]
 pub enum InstructionDecodeError {
     InvalidValueSize,
     IllegalOpcode,
 }
 
+/// Decode the next instruction in the Program stream
 pub fn decode_next_instruction(instructions: &Program, program_counter: &mut usize) -> Option<Result<Box<dyn Instruction>, InstructionDecodeError>> {
     // @todo: I am not super happy with this decoding scheme. It should probably grab the entire slice (4 bytes) and handle them together
     if *program_counter >= instructions.len() {
@@ -59,7 +91,7 @@ pub fn decode_next_instruction(instructions: &Program, program_counter: &mut usi
     })
 }
 
-
+/// Build the Instruction TraitObject from the program stream
 pub fn build<T: 'static + Instruction>(instructions: &Program, program_counter: &mut usize) -> Result<Box<dyn Instruction>, InstructionDecodeError> {
     Ok(
         Box::new(
@@ -74,6 +106,7 @@ pub fn build<T: 'static + Instruction>(instructions: &Program, program_counter: 
     )
 }
 
+/// Decodes the operand values from the Instruction Stream
 pub fn consume_and_parse_values(signature: InstructionSignature, instructions: &Program, program_counter: &mut usize) -> Result<OperandValues, InstructionDecodeError> {
     let mut operand_values: OperandValues = [OperandValue::None, OperandValue::None, OperandValue::None];
 
@@ -103,9 +136,6 @@ pub fn consume_and_parse_values(signature: InstructionSignature, instructions: &
 
                 *program_counter += 3;
             }
-            _ => {
-                return Err(InstructionDecodeError::InvalidValueSize);
-            }
         };
     }
 
@@ -115,6 +145,7 @@ pub fn consume_and_parse_values(signature: InstructionSignature, instructions: &
     Ok(operand_values)
 }
 
+/// Prints an instruction in an Instruction Stream in a human readable format
 pub fn display_instruction_with_values<T: 'static + Instruction>(instruction: &T) -> String {
     let mut output = String::new();
     output.push_str(T::signature().identifier.as_str());
@@ -136,6 +167,7 @@ pub fn display_instruction_with_values<T: 'static + Instruction>(instruction: &T
     output
 }
 
+/// Helper for a common instruction execution. Executes callback with the values from two operands, setting a destination register
 fn basic_register_execution<I: Instruction, F: Fn(RegisterValue, RegisterValue) -> RegisterValue>(instruction: &I, vm: &mut Kaylee, callback: F) -> RegisterValue {
     let destination = instruction.operand_values()[0].as_register_id();
 
@@ -148,6 +180,7 @@ fn basic_register_execution<I: Instruction, F: Fn(RegisterValue, RegisterValue) 
     result
 }
 
+/// Potential types of Operands
 pub enum OperandType {
     None,
     RegisterId,
@@ -158,6 +191,7 @@ pub enum OperandType {
 
 type OperandValues = [OperandValue; 3];
 
+/// Value for an operand in the Instruction Stream
 #[derive(PartialOrd, PartialEq, Debug)]
 pub enum OperandValue {
     Byte(Byte),
@@ -166,6 +200,7 @@ pub enum OperandValue {
     None,
 }
 
+/// Decode a single operand from a byte in the Instruction Stream
 impl TryFrom<Byte> for OperandValue {
     type Error = ();
 
@@ -174,6 +209,7 @@ impl TryFrom<Byte> for OperandValue {
     }
 }
 
+/// Decode a single operand from a Halfword in the Instruction Stream
 impl TryFrom<HalfWord> for OperandValue {
     type Error = ();
 
@@ -183,6 +219,7 @@ impl TryFrom<HalfWord> for OperandValue {
 }
 
 impl OperandValue {
+    /// Get the OperandValue as a RegisterId
     // @todo: I tried to do these conversions using TryFrom and a generic `into<T>(&self) -> T` function, but neither worked.
     // @todo: There is certainly a more idiomatic way
     fn as_register_id(&self) -> RegisterId {
@@ -194,10 +231,12 @@ impl OperandValue {
         }
     }
 
+    /// Get the OperandValue as a Program Index Target
     fn as_program_index(&self) -> ProgramIndex {
         self.as_register_id() as ProgramIndex
     }
 
+    /// Get the OperandValue as a constant literal value (integer)
     fn as_constant_value(&self) -> RegisterValue {
         match self {
             OperandValue::Byte(value) => *value as RegisterValue,
@@ -207,6 +246,7 @@ impl OperandValue {
         }
     }
 
+    /// Get the OperandValue as a string
     pub(crate) fn as_string(&self) -> String {
         match self {
             OperandValue::Byte(value) => value.to_string(),
@@ -217,40 +257,45 @@ impl OperandValue {
     }
 }
 
+/// Defines an Instruction's Signature
 pub struct InstructionSignature {
     pub identifier: String,
     pub operands: [OperandType; 3],
 }
 
+/// Defines an Instruction's documentation
 pub struct InstructionDocumentation {
     pub name: String,
     pub help: String,
 }
 
+/// Allows an Instruction to be executable
 pub trait Executable {
     // @todo: The only thing (other than the OPCODE constant) that is actually required w/o macro
     fn execute(&self, vm: &mut Kaylee) -> Result<ExecutionResult, Error>;
 }
 
+/// Defines the Instruction itself
+/// This is built automatically with the derive(Instruction) macro
 pub trait Instruction: Executable {
     // Also requires a `pub const OPCODE: u8`
 
-    // @todo: These can be derived with a macro, eventually
+    /// Create a new instruction with Concrete Values
     fn new(operand_values: OperandValues) -> Self where Self: Sized;
+
+    /// Return the Instruction Signature
     fn signature() -> InstructionSignature where Self: Sized;
+
+    /// Return the Instruction Documentation
     fn documentation() -> InstructionDocumentation where Self: Sized;
 
-    // @Todo: macro eligible
+    /// Return a human-readable form of the instruction
     fn display(&self) -> String;
 
-    // fn raw(&self) -> [u8; 4];
-    // fn opcode_as_hex(&self) -> String {
-    //     format!("{:#X}", self.opcode())
-    // }
-    // @todo: macro eligible
+    /// Return the concrete OperandValues
     fn operand_values(&self) -> &OperandValues;
 
-
+    /// Return a specific, concrete OperandValue
     fn operand_value(&self, index: usize) -> Result<&OperandValue, String> {
         if index > 2 {
             return Err("Index Out Of Bounds".to_string());
@@ -259,108 +304,9 @@ pub trait Instruction: Executable {
         Ok(&self.operand_values()[index])
     }
 
+    /// Get a concrete value from a register by looking at the target in an OperandValue
     fn get_register_value_for_operand(&self, operand_value_index: usize, vm: &mut Kaylee) -> Result<RegisterValue, ()> {
         let register = self.operand_values()[operand_value_index].as_register_id();
         vm.register(register)
     }
 }
-//
-// #[cfg(test)]
-// mod tests {
-//     use crate::instructions::{consume_and_parse_values, OperandMap, OperandValue};
-//
-//     #[test]
-//     fn consume_and_parse_values_0() {
-//         let operand_map = OperandMap::from([0, 0, 0]);
-//         let mut instructions: Vec<u8> = vec![0, 0, 0];
-//
-//         let expected = [
-//             OperandValue::None,
-//             OperandValue::None,
-//             OperandValue::None,
-//         ];
-//
-//         test_consume_and_parse_values(operand_map, &mut instructions, &expected, 0);
-//     }
-//
-//     #[test]
-//     fn consume_and_parse_values_all_1() {
-//         let operand_map = OperandMap::from([1, 1, 1]);
-//         let mut instructions: Vec<u8> = vec![30, 40, 50];
-//
-//         let expected = [
-//             OperandValue::Byte(30),
-//             OperandValue::Byte(40),
-//             OperandValue::Byte(50),
-//         ];
-//
-//         test_consume_and_parse_values(operand_map, &mut instructions, &expected, 3);
-//     }
-//
-//     #[test]
-//     fn consume_and_parse_values_2_1() {
-//         let operand_map = OperandMap::from([2, 1, 0]);
-//         let mut instructions: Vec<u8> = vec![1, 244, 100];
-//
-//         let expected = [
-//             OperandValue::HalfWord(500),
-//             OperandValue::Byte(100),
-//             OperandValue::None
-//         ];
-//
-//         test_consume_and_parse_values(operand_map, &mut instructions, &expected, 3);
-//     }
-//
-//     #[test]
-//     fn consume_and_parse_values_1_0_0() {
-//         let operand_map = OperandMap::from([1, 0, 0]);
-//         let mut instructions: Vec<u8> = vec![70];
-//
-//         let expected = [
-//             OperandValue::Byte(70),
-//             OperandValue::None,
-//             OperandValue::None
-//         ];
-//
-//         test_consume_and_parse_values(operand_map, &mut instructions, &expected, 1);
-//     }
-//
-//     #[test]
-//     fn consume_and_parse_values_1_1_0() {
-//         let operand_map = OperandMap::from([1, 1, 0]);
-//         let mut instructions: Vec<u8> = vec![70, 80];
-//
-//         let expected = [
-//             OperandValue::Byte(70),
-//             OperandValue::Byte(80),
-//             OperandValue::None
-//         ];
-//
-//         test_consume_and_parse_values(operand_map, &mut instructions, &expected, 2);
-//     }
-//
-//     #[test]
-//     fn consume_and_parse_values_a_single_24_bit() {
-//         let operand_map = OperandMap::from([3, 0, 0]);
-//         let mut instructions: Vec<u8> = vec![1, 1, 1];
-//
-//         let expected = [
-//             OperandValue::Word(65793), // 00 01 01 01
-//             OperandValue::None,
-//             OperandValue::None
-//         ];
-//
-//         test_consume_and_parse_values(operand_map, &mut instructions, &expected, 3);
-//     }
-//
-//     fn test_consume_and_parse_values(operand_map: [usize; 3], mut instructions: &mut Vec<u8>, expected: &[OperandValue; 3], expected_counter: usize) {
-//         let mut counter: usize = 0;
-//
-//         let result = consume_and_parse_values(operand_map, &mut instructions, &mut counter).unwrap();
-//         for (key, value) in result.iter().enumerate() {
-//             assert_eq!(&expected[key], value, "failed on value {}", key);
-//         }
-//
-//         assert_eq!(expected_counter, counter);
-//     }
-// }
