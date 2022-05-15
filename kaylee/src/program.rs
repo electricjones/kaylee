@@ -1,8 +1,4 @@
-use std::borrow::Borrow;
 use std::ops::Index;
-
-use nom::Err;
-use nom::error::ErrorKind;
 
 use crate::asm::{Parsed, Source};
 use crate::asm::assembler::{Assembler, AssemblerError};
@@ -67,7 +63,7 @@ impl TryFrom<Source> for Program {
             Ok(success) => {
                 success.1.try_into()
             }
-            Err(failure) => Err(AssemblerError::Other(String::from("Parsing error")))
+            Err(_) => Err(AssemblerError::Other(String::from("Parsing error")))
         }
     }
 }

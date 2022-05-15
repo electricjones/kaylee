@@ -1,6 +1,3 @@
-use nom::error::ErrorKind;
-use nom::IResult;
-
 pub mod parser;
 pub mod assembler;
 

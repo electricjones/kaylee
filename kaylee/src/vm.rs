@@ -72,14 +72,17 @@ impl Kaylee {
     }
 
     fn execute_instruction(&mut self, instruction: Box<dyn Instruction>) {
-        match instruction.execute(self) {
-            Ok(ExecutionResult::Value(value)) => println!("{value}"),
-            Ok(ExecutionResult::Halted) => println!("Halting"),
-            Ok(ExecutionResult::Jumped(index)) => println!("Jumped to {index}"),
-            Ok(ExecutionResult::Equality(flag)) => println!("Jumped to {flag}"),
-            Ok(ExecutionResult::NoAction) => println!("No Action"),
-            Err(_) => panic!("Error")
-        }
+        instruction.execute(self);
+
+        // I should probably do something with these results, or pass them back
+        // match instruction.execute(self) {
+        //     Ok(ExecutionResult::Value(value)) => println!("{value}"),
+        //     Ok(ExecutionResult::Halted) => println!("Halting"),
+        //     Ok(ExecutionResult::Jumped(index)) => println!("Jumped to {index}"),
+        //     Ok(ExecutionResult::Equality(flag)) => println!("Jumped to {flag}"),
+        //     Ok(ExecutionResult::NoAction) => println!("No Action"),
+        //     Err(_) => panic!("Error")
+        // }
     }
 
     pub(crate) fn register(&self, register: RegisterId) -> Result<RegisterValue, ()> {

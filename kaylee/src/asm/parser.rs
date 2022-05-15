@@ -7,9 +7,7 @@ use nom::IResult;
 use nom::multi::{many0, separated_list1};
 use nom::sequence::{delimited, preceded};
 
-use crate::asm::{Parsed, parser, Source};
-use crate::instructions::OperandType;
-use crate::program::Program;
+use crate::asm::Parsed;
 
 // @todo: Also, allow for
 // - Labels
@@ -47,7 +45,6 @@ mod test {
     use nom::error::ErrorKind;
 
     use crate::asm::parser::{instruction_parser, is_valid_keyword_character, operand_parser, operation_keyword, parse_asm};
-    use crate::program::Program;
 
     #[test]
     pub fn test_is_valid_keyword_character() {
