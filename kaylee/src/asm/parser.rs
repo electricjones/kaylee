@@ -4,7 +4,7 @@ use nom::character::complete::{digit1, multispace0, newline, space0, space1};
 use nom::character::is_alphabetic;
 use nom::error::ErrorKind;
 use nom::IResult;
-use nom::multi::{many0, separated_list1};
+use nom::multi::{many0, separated_list0, separated_list1};
 use nom::sequence::{delimited, preceded};
 
 use crate::asm::Parsed;
@@ -13,11 +13,12 @@ use crate::asm::Parsed;
 /// Does not actually parse to token enumerations. It simply splits a source into substrings.
 /// The assembler takes these split strings and assembles them into true bytecode
 pub fn parse_asm(s: &str) -> IResult<&str, Parsed, (&str, ErrorKind)> {
-    separated_list1(many0(newline), line)(s)
+    // separated_list0(many0(newline), line)(s)
+    separated_list0(newline, line)(s)
 }
 
 /// Parse a single line into a vector of tokens
-fn line(s: &str) -> IResult<&str, Vec<&str>, (&str, ErrorKind)> {
+pub fn line(s: &str) -> IResult<&str, Vec<&str>, (&str, ErrorKind)> {
     delimited(multispace0, instruction_parser, space0)(s)
 }
 
@@ -88,6 +89,11 @@ mod test {
     pub fn test_instruction() {
         assert_eq!(vec!["LOAD", "0", "500"], instruction_parser("LOAD $0 #500").unwrap().1);
         assert_eq!(vec!["LOAD", "3", "18"], instruction_parser("LOAD #3 $18").unwrap().1);
+    }
+
+    #[test]
+    pub fn test_parse_single_line_instruction() {
+        assert_eq!(vec![vec!["LOAD", "1", "500"]], parse_asm("LOAD $1 #500").unwrap().1);
     }
 
     #[test]

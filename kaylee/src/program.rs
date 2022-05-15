@@ -1,4 +1,5 @@
 use std::ops::Index;
+use std::vec::IntoIter;
 
 use crate::asm::{Parsed, Source};
 use crate::asm::assembler::{Assembler, AssemblerError};
@@ -17,6 +18,15 @@ impl Index<ProgramIndex> for Program {
 
     fn index(&self, index: ProgramIndex) -> &Self::Output {
         &self.bytes[index]
+    }
+}
+
+impl IntoIterator for Program {
+    type Item = u8;
+    type IntoIter = IntoIter<Byte>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.bytes.into_iter()
     }
 }
 
@@ -41,6 +51,10 @@ impl Program {
 
     pub fn len(&self) -> usize {
         self.bytes.len()
+    }
+
+    pub fn bytes(&self) -> &Vec<u8> {
+        &self.bytes
     }
 }
 

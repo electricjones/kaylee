@@ -2,6 +2,10 @@ use std;
 use std::io;
 use std::io::Write;
 
+use nom::IResult;
+
+use crate::asm::assembler::Assembler;
+use crate::asm::parser::{line, parse_asm};
 use crate::instructions::decode_next_instruction;
 use crate::program::Program;
 use crate::shared::parse_hex;
@@ -67,17 +71,24 @@ impl Repl {
                     println!("End of register listing");
                 }
                 _ => {
-                    let results = parse_hex(buffer);
-                    match results {
-                        Ok(bytes) => {
-                            let _ = &program.extend(bytes);
+                    match parse_asm(buffer) {
+                        Ok(parsed) => {
+                            let assembler = Assembler::new();
+                            let results = assembler.assemble_parsed_asm(parsed.1);
+                            match results {
+                                Ok(bytes) => {
+                                    let _ = &program.extend(bytes);
+                                    self.vm.run_next(&program)
+                                }
+                                Err(_e) => {
+                                    println!("Invalid string bytecode");
+                                }
+                            }
                         }
-                        Err(_e) => {
-                            println!("Invalid HEX string");
+                        Err(error) => {
+                            println!("{:?}", error);
                         }
                     }
-
-                    self.vm.run_next(&program);
                 }
             }
         }
